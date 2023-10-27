@@ -38,6 +38,7 @@ macro_rules! intrinsic {
     } => {
         $(
         #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
+        #[inline]
         pub fn $name $args $(-> $ret)* { $($body)* }
         )*
     }
@@ -112,8 +113,46 @@ macro_rules! cmpgt {
     }
 }
 
+macro_rules! packs2 {
+    { $out:ty, $a:expr, $b:expr } => {
+        simd_swizzle!($a, $b, [
+            core::simd::Which::First(0),
+            core::simd::Which::First(1),
+            core::simd::Which::Second(0),
+            core::simd::Which::Second(1),
+        ])
+        .simd_clamp(
+            Simd::splat(<$out>::MIN as _),
+            Simd::splat(<$out>::MAX as _),
+        )
+        .cast::<$out>()
+    }
+}
+
+macro_rules! packs4 {
+    { $out:ty, $a:expr, $b:expr } => {
+        simd_swizzle!($a, $b, [
+            core::simd::Which::First(0),
+            core::simd::Which::First(1),
+            core::simd::Which::First(2),
+            core::simd::Which::First(3),
+            core::simd::Which::Second(0),
+            core::simd::Which::Second(1),
+            core::simd::Which::Second(2),
+            core::simd::Which::Second(3),
+        ])
+        .simd_clamp(
+            Simd::splat(<$out>::MIN as _),
+            Simd::splat(<$out>::MAX as _),
+        )
+        .cast::<$out>()
+    }
+}
+
 pub(crate) use andnot;
 pub(crate) use binary;
 pub(crate) use cmpeq;
 pub(crate) use cmpgt;
 pub(crate) use intrinsic;
+pub(crate) use packs2;
+pub(crate) use packs4;
