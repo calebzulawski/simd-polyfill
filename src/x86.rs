@@ -149,6 +149,18 @@ macro_rules! packs4 {
     }
 }
 
+macro_rules! unpackhi {
+    { $a:expr, $b:expr } => {
+        $a.interleave($b).1
+    }
+}
+
+macro_rules! unpacklo {
+    { $a:expr, $b:expr } => {
+        $a.interleave($b).0
+    }
+}
+
 pub(crate) use andnot;
 pub(crate) use binary;
 pub(crate) use cmpeq;
@@ -156,3 +168,5 @@ pub(crate) use cmpgt;
 pub(crate) use intrinsic;
 pub(crate) use packs2;
 pub(crate) use packs4;
+pub(crate) use unpackhi;
+pub(crate) use unpacklo;
