@@ -15,6 +15,9 @@ pub mod sse;
 /// SSE3 instruction set
 pub mod sse3;
 
+/// SSSE3 instruction set
+pub mod ssse3;
+
 vector! {
     pub struct __m64(u8x8) from u8x8, u16x4, u32x2, u64x1, i8x8, i16x4, i32x2, i64x1;
 }
@@ -177,6 +180,55 @@ macro_rules! binary {
     }
 }
 
+macro_rules! unary {
+    {
+        $(
+            $name:ident, $func:expr, $ty:ty as $inner:ty, $ret:ty;
+        )*
+    } => {
+        $(
+        intrinsic! {
+            fn $name(a: $ty) -> $ret {
+                let a: $inner = a.into();
+                $func(a).into()
+            }
+        }
+        )*
+    };
+    {
+        $(
+            $name:ident, $func:expr, $ty:ty as $inner:ty;
+        )*
+    } => {
+        $(
+        unary! { $name, $func, $ty as $inner, $ty; }
+        )*
+    };
+    {
+        $(
+            $name:ident, macro $func:path, $ty:ty as $inner:ty, $ret:ty;
+        )*
+    } => {
+        $(
+        intrinsic! {
+            fn $name(a: $ty) -> $ret {
+                let a: $inner = a.into();
+                $func!(a).into()
+            }
+        }
+        )*
+    };
+    {
+        $(
+            $name:ident, macro $func:path, $ty:ty as $inner:ty;
+        )*
+    } => {
+        $(
+        unary! { $name, macro $func, $ty as $inner, $ty; }
+        )*
+    }
+}
+
 macro_rules! andnot {
     { $a:expr, $b:expr } => {
         !($a & $b)
@@ -333,6 +385,42 @@ macro_rules! hsub {
     }
 }
 
+macro_rules! hadds {
+    { $a:expr, $b:expr } => {
+        {
+            let (first, second) = $a.deinterleave($b);
+            first.saturating_add(second)
+        }
+    }
+}
+
+macro_rules! hsubs {
+    { $a:expr, $b:expr } => {
+        {
+            let (first, second) = $a.deinterleave($b);
+            first.saturating_sub(second)
+        }
+    }
+}
+
+macro_rules! sign {
+    { $a:expr, $b:expr } => {
+        $b.simd_eq(Simd::splat(0)).select(
+            Simd::splat(0),
+            $b.simd_lt(Simd::splat(0)).select(-$a, $a)
+        )
+    }
+}
+
+pub(crate) fn mulhrs<const N: usize>(a: Simd<i16, N>, b: Simd<i16, N>) -> Simd<i16, N>
+where
+    LaneCount<N>: SupportedLaneCount,
+{
+    let a: Simd<i32, N> = a.cast();
+    let b: Simd<i32, N> = b.cast();
+    ((a * b >> Simd::splat(14)) + Simd::splat(1)).cast()
+}
+
 pub(crate) fn addsub<T, const N: usize>(a: Simd<T, N>, b: Simd<T, N>) -> Simd<T, N>
 where
     T: SimdElement,
@@ -392,9 +480,13 @@ pub(crate) use cmpunord;
 pub(crate) use float_max;
 pub(crate) use float_min;
 pub(crate) use hadd;
+pub(crate) use hadds;
 pub(crate) use hsub;
+pub(crate) use hsubs;
 pub(crate) use intrinsic;
 pub(crate) use packs2;
 pub(crate) use packs4;
+pub(crate) use sign;
+pub(crate) use unary;
 pub(crate) use unpackhi;
 pub(crate) use unpacklo;
