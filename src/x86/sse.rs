@@ -1,5 +1,5 @@
 use super::*;
-use std::simd::ToBitMask;
+use core::simd::ToBitMask;
 
 binary! {
     _mm_add_ps, Add::add, __m128 as f32x4;
@@ -136,8 +136,7 @@ intrinsic! {
     }
 
     fn _mm_movemask_ps(a: __m128) -> i32 {
-        let a: f32x4 = a.into();
-        let a: i32x4 = unsafe { core::mem::transmute(a) };
+        let a: i32x4 = a.into();
         a.simd_lt(i32x4::splat(0)).to_bitmask() as i32
     }
 
@@ -236,7 +235,7 @@ intrinsic! {
     }
 
     unsafe fn _mm_load_ss(mem_addr: *const f32) -> __m128 {
-        f32x4::from_array([mem_addr.read(), 0., 0., 0.]).into()
+        f32x4::from_array([mem_addr.read_unaligned(), 0., 0., 0.]).into()
     }
 
     unsafe fn _mm_load1_ps(mem_addr: *const f32) -> __m128 {

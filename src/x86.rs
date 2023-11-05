@@ -12,6 +12,9 @@ pub mod mmx;
 /// SSE instruction set
 pub mod sse;
 
+/// SSE2 instruction set
+pub mod sse2;
+
 /// SSE3 instruction set
 pub mod sse3;
 
