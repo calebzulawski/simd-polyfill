@@ -1,11 +1,19 @@
+//! x86 and x86-64 intrinsics
+
 use crate::vector;
-use core::simd::{prelude::*, LaneCount, SupportedLaneCount};
+use core::{
+    ops::*,
+    simd::{prelude::*, LaneCount, SimdElement, SupportedLaneCount},
+};
 
 /// MMX instruction set
 pub mod mmx;
 
 /// SSE instruction set
 pub mod sse;
+
+/// SSE3 instruction set
+pub mod sse3;
 
 vector! {
     pub struct __m64(u8x8) from u8x8, u16x4, u32x2, u64x1, i8x8, i16x4, i32x2, i64x1;
@@ -307,6 +315,43 @@ macro_rules! float_min {
     }
 }
 
+macro_rules! hadd {
+    { $a:expr, $b:expr } => {
+        {
+            let (first, second) = $a.deinterleave($b);
+            first + second
+        }
+    }
+}
+
+macro_rules! hsub {
+    { $a:expr, $b:expr } => {
+        {
+            let (first, second) = $a.deinterleave($b);
+            first - second
+        }
+    }
+}
+
+pub(crate) fn addsub<T, const N: usize>(a: Simd<T, N>, b: Simd<T, N>) -> Simd<T, N>
+where
+    T: SimdElement,
+    LaneCount<N>: SupportedLaneCount,
+    Simd<T, N>: Add<Output = Simd<T, N>> + Sub<Output = Simd<T, N>>,
+{
+    const fn alternate<T, const N: usize>() -> [bool; N] {
+        let mut mask = [false; N];
+        let mut i = 0;
+        while i < N {
+            mask[i] = (i & 1) == 0;
+            i += 1;
+        }
+        mask
+    }
+
+    Mask::from_array(alternate::<T, N>()).select(a - b, a + b)
+}
+
 pub(crate) fn pavgb<const N: usize>(a: Simd<u8, N>, b: Simd<u8, N>) -> Simd<u8, N>
 where
     LaneCount<N>: SupportedLaneCount,
@@ -346,6 +391,8 @@ pub(crate) use cmpord;
 pub(crate) use cmpunord;
 pub(crate) use float_max;
 pub(crate) use float_min;
+pub(crate) use hadd;
+pub(crate) use hsub;
 pub(crate) use intrinsic;
 pub(crate) use packs2;
 pub(crate) use packs4;

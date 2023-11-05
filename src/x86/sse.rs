@@ -1,5 +1,4 @@
 use super::*;
-use core::ops::*;
 use std::simd::ToBitMask;
 
 binary! {
