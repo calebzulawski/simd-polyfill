@@ -1,5 +1,5 @@
 use crate::vector;
-use core::simd::prelude::*;
+use core::simd::{prelude::*, LaneCount, SupportedLaneCount};
 
 /// MMX instruction set
 pub mod mmx;
@@ -37,12 +37,30 @@ vector! {
 
 macro_rules! intrinsic {
     {
+        $(#[intrinsic = $name:ident] $func:item)*
+    } => {
+        $(
+        #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
+        #[inline]
+        $func
+        )*
+    };
+    {
         $(fn $name:ident $args:tt $(-> $ret:ty)? { $($body:tt)* })*
     } => {
         $(
         #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
         #[inline]
         pub fn $name $args $(-> $ret)* { $($body)* }
+        )*
+    };
+    {
+        $(unsafe fn $name:ident $args:tt $(-> $ret:ty)? { $($body:tt)* })*
+    } => {
+        $(
+        #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
+        #[inline]
+        pub unsafe fn $name $args $(-> $ret)* { $($body)* }
         )*
     }
 }
@@ -277,6 +295,40 @@ macro_rules! unpacklo {
     }
 }
 
+macro_rules! float_max {
+    { $a:expr, $b:expr } => {
+        $a.simd_gt($b).select($a, $b)
+    }
+}
+
+macro_rules! float_min {
+    { $a:expr, $b:expr } => {
+        $a.simd_lt($b).select($a, $b)
+    }
+}
+
+pub(crate) fn pavgb<const N: usize>(a: Simd<u8, N>, b: Simd<u8, N>) -> Simd<u8, N>
+where
+    LaneCount<N>: SupportedLaneCount,
+{
+    let a: Simd<u16, N> = a.cast();
+    let b: Simd<u16, N> = b.cast();
+    let one = Simd::<u16, N>::splat(1);
+    let r = (a + b + one) >> one;
+    r.cast()
+}
+
+pub(crate) fn pavgw<const N: usize>(a: Simd<u16, N>, b: Simd<u16, N>) -> Simd<u16, N>
+where
+    LaneCount<N>: SupportedLaneCount,
+{
+    let a: Simd<u32, N> = a.cast();
+    let b: Simd<u32, N> = b.cast();
+    let one = Simd::<u32, N>::splat(1);
+    let r = (a + b + one) >> one;
+    r.cast()
+}
+
 pub(crate) use andnot;
 pub(crate) use binary;
 pub(crate) use binary_one_element;
@@ -292,6 +344,8 @@ pub(crate) use cmpnle;
 pub(crate) use cmpnlt;
 pub(crate) use cmpord;
 pub(crate) use cmpunord;
+pub(crate) use float_max;
+pub(crate) use float_min;
 pub(crate) use intrinsic;
 pub(crate) use packs2;
 pub(crate) use packs4;
