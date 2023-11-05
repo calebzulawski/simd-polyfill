@@ -207,6 +207,46 @@ intrinsic! {
         let r: i16x8 = ((a * b) & i32x8::splat(0xffff)).cast();
         r.into()
     }
+
+    fn _mm_packs_epi16(a: __m128i, b: __m128i) -> __m128i {
+        let a: i16x8 = a.into();
+        let b: i16x8 = b.into();
+        packs8!{ i8, a, b }.into()
+    }
+
+    fn _mm_packs_epi32(a: __m128i, b: __m128i) -> __m128i {
+        let a: i32x4 = a.into();
+        let b: i32x4 = b.into();
+        packs4! { i16, a, b }.into()
+    }
+
+    fn _mm_packus_epi16(a: __m128i, b: __m128i) -> __m128i {
+        let a: i16x8 = a.into();
+        let b: i16x8 = b.into();
+        packs8!{ u8, a, b }.into()
+    }
+
+    fn _mm_pause() {
+        core::hint::spin_loop()
+    }
+
+    fn _mm_sad_epu8(a: __m128i, b: __m128i) -> __m128i {
+        let a: u8x16 = a.into();
+        let b: u8x16 = b.into();
+        let diff: u16x16 = (a.simd_max(b) - a.simd_min(b)).cast();
+        let first = simd_swizzle!(diff, [0, 1, 2, 3, 4, 5, 6, 7]);
+        let second = simd_swizzle!(diff, [8, 9, 10, 11, 12, 13, 14, 15]);
+        u16x8::from_array([
+            first.reduce_sum(),
+            0,
+            0,
+            0,
+            second.reduce_sum(),
+            0,
+            0,
+            0,
+        ]).into()
+    }
 }
 
 intrinsic! {

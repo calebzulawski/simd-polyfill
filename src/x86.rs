@@ -346,6 +346,34 @@ macro_rules! packs4 {
     }
 }
 
+macro_rules! packs8 {
+    { $out:ty, $a:expr, $b:expr } => {
+        simd_swizzle!($a, $b, [
+            core::simd::Which::First(0),
+            core::simd::Which::First(1),
+            core::simd::Which::First(2),
+            core::simd::Which::First(3),
+            core::simd::Which::First(4),
+            core::simd::Which::First(5),
+            core::simd::Which::First(6),
+            core::simd::Which::First(7),
+            core::simd::Which::Second(0),
+            core::simd::Which::Second(1),
+            core::simd::Which::Second(2),
+            core::simd::Which::Second(3),
+            core::simd::Which::Second(4),
+            core::simd::Which::Second(5),
+            core::simd::Which::Second(6),
+            core::simd::Which::Second(7),
+        ])
+        .simd_clamp(
+            Simd::splat(<$out>::MIN as _),
+            Simd::splat(<$out>::MAX as _),
+        )
+        .cast::<$out>()
+    }
+}
+
 macro_rules! unpackhi {
     { $a:expr, $b:expr } => {
         $a.interleave($b).1
@@ -489,6 +517,7 @@ pub(crate) use hsubs;
 pub(crate) use intrinsic;
 pub(crate) use packs2;
 pub(crate) use packs4;
+pub(crate) use packs8;
 pub(crate) use sign;
 pub(crate) use unary;
 pub(crate) use unpackhi;
