@@ -1,4 +1,4 @@
-pub use super::*;
+use super::*;
 
 unary! {
     _mm_abs_epi8, SimdInt::abs, __m128i as i8x16;

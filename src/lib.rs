@@ -1,3 +1,7 @@
+//! SIMD polyfill for Rust.
+//!
+//! Provides implementations of SIMD instruction sets that work on all other SIMD instruction sets.
+
 #![feature(portable_simd)]
 #![allow(
     non_camel_case_types,
