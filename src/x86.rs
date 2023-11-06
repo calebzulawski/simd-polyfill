@@ -476,7 +476,7 @@ where
 {
     let a: Simd<i32, N> = a.cast();
     let b: Simd<i32, N> = b.cast();
-    ((a * b >> Simd::splat(14)) + Simd::splat(1)).cast()
+    (((a * b) >> Simd::splat(14)) + Simd::splat(1)).cast()
 }
 
 pub(crate) fn addsub<T, const N: usize>(a: Simd<T, N>, b: Simd<T, N>) -> Simd<T, N>
@@ -485,7 +485,7 @@ where
     LaneCount<N>: SupportedLaneCount,
     Simd<T, N>: Add<Output = Simd<T, N>> + Sub<Output = Simd<T, N>>,
 {
-    const fn alternate<T, const N: usize>() -> [bool; N] {
+    const fn alternate<const N: usize>() -> [bool; N] {
         let mut mask = [false; N];
         let mut i = 0;
         while i < N {
@@ -495,7 +495,7 @@ where
         mask
     }
 
-    Mask::from_array(alternate::<T, N>()).select(a - b, a + b)
+    Mask::from_array(alternate::<N>()).select(a - b, a + b)
 }
 
 pub(crate) fn pavgb<const N: usize>(a: Simd<u8, N>, b: Simd<u8, N>) -> Simd<u8, N>

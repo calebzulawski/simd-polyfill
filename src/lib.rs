@@ -1,5 +1,9 @@
 #![feature(portable_simd)]
-#![allow(non_camel_case_types)]
+#![allow(
+    non_camel_case_types,
+    clippy::missing_safety_doc,
+    clippy::too_many_arguments
+)]
 
 pub mod x86;
 

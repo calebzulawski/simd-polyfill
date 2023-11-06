@@ -170,7 +170,7 @@ intrinsic! {
     }
 
     fn _mm_set_ss(a: f32) -> __m128 {
-        _mm_set_ps(0., 0., 0., a).into()
+        _mm_set_ps(0., 0., 0., a)
     }
 
     fn _mm_set1_ps(a: f32) -> __m128 {
@@ -203,7 +203,7 @@ intrinsic! {
         struct Shuffle<const IMM8: i32>;
         impl<const IMM8: i32> Swizzle<4, 4> for Shuffle<IMM8> {
             const INDEX: [usize; 4] = [
-                (IMM8 as usize >> 0) & 0x3,
+                (IMM8 as usize) & 0x3,
                 (IMM8 as usize >> 2) & 0x3,
                 (IMM8 as usize >> 4) & 0x3,
                 (IMM8 as usize >> 8) & 0x3,
