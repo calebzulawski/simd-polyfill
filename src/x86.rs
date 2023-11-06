@@ -60,6 +60,15 @@ macro_rules! intrinsic {
         )*
     };
     {
+        $(fn $name:ident<const $imm:ident: $immty:ty> $args:tt $(-> $ret:ty)? { $($body:tt)* })*
+    } => {
+        $(
+        #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
+        #[inline]
+        pub fn $name <const $imm: $immty> $args $(-> $ret)* { $($body)* }
+        )*
+    };
+    {
         $(fn $name:ident $args:tt $(-> $ret:ty)? { $($body:tt)* })*
     } => {
         $(
@@ -443,6 +452,24 @@ macro_rules! sign {
     }
 }
 
+macro_rules! shuffle4 {
+    { $IMM8:expr, $a:expr } => {
+        {
+            use core::simd::Swizzle;
+            struct Shuffle<const IMM8: i32>;
+            impl<const IMM8: i32> Swizzle<4, 4> for Shuffle<IMM8> {
+                const INDEX: [usize; 4] = [
+                    (IMM8 as usize >> 0) & 0x3,
+                    (IMM8 as usize >> 2) & 0x3,
+                    (IMM8 as usize >> 4) & 0x3,
+                    (IMM8 as usize >> 8) & 0x3,
+                ];
+            }
+            Shuffle::<$IMM8>::swizzle($a)
+        }
+    }
+}
+
 pub(crate) fn mulhrs<const N: usize>(a: Simd<i16, N>, b: Simd<i16, N>) -> Simd<i16, N>
 where
     LaneCount<N>: SupportedLaneCount,
@@ -518,6 +545,7 @@ pub(crate) use intrinsic;
 pub(crate) use packs2;
 pub(crate) use packs4;
 pub(crate) use packs8;
+pub(crate) use shuffle4;
 pub(crate) use sign;
 pub(crate) use unary;
 pub(crate) use unpackhi;

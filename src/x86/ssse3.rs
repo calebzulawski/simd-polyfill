@@ -59,7 +59,6 @@ intrinsic! {
 }
 
 intrinsic! {
-    #[intrinsic = _mm_alignr_epi8]
     fn _mm_alignr_pi8<const IMM8: usize>(a: __m64, b: __m64) -> __m64 {
         fn select<const IMM8: usize>() -> [bool; 8] {
             let mut mask = [true; 8];
@@ -97,7 +96,6 @@ intrinsic! {
             ).into()
     }
 
-    #[intrinsic = _mm_alignr_epi8]
     fn _mm_alignr_epi8<const IMM8: usize>(a: __m128i, b: __m128i) -> __m128i {
         fn select<const IMM8: usize>() -> [bool; 16] {
             let mut mask = [true; 16];

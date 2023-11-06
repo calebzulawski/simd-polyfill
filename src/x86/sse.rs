@@ -192,24 +192,12 @@ intrinsic! {
 }
 
 intrinsic! {
-    #[intrinsic = _mm_shuffle_pi16]
-    pub fn _mm_shuffle_pi16<const IMM8: i32>(a: __m64) -> __m64 {
+    fn _mm_shuffle_pi16<const IMM8: i32>(a: __m64) -> __m64 {
         let a: i16x4 = a.into();
-        use core::simd::Swizzle;
-        struct Shuffle<const IMM8: i32>;
-        impl<const IMM8: i32> Swizzle<4, 4> for Shuffle<IMM8> {
-            const INDEX: [usize; 4] = [
-                (IMM8 as usize >> 0) & 0x3,
-                (IMM8 as usize >> 2) & 0x3,
-                (IMM8 as usize >> 4) & 0x3,
-                (IMM8 as usize >> 8) & 0x3,
-            ];
-        }
-        Shuffle::<IMM8>::swizzle(a).into()
+        shuffle4! { IMM8, a }.into()
     }
 
-    #[intrinsic = _mm_shuffle_ps]
-    pub fn _mm_shuffle_ps<const IMM8: i32>(a: __m128) -> __m128 {
+    fn _mm_shuffle_ps<const IMM8: i32>(a: __m128) -> __m128 {
         let a: f32x4 = a.into();
         use core::simd::Swizzle;
         struct Shuffle<const IMM8: i32>;

@@ -6,8 +6,13 @@ binary! {
     _mm_add_epi16, Add::add, __m128i as i16x8;
     _mm_add_epi32, Add::add, __m128i as i32x4;
     _mm_add_epi64, Add::add, __m128i as i64x2;
+    _mm_sub_epi8, Sub::sub, __m128i as i8x16;
+    _mm_sub_epi16, Sub::sub, __m128i as i16x8;
+    _mm_sub_epi32, Sub::sub, __m128i as i32x4;
+    _mm_sub_epi64, Sub::sub, __m128i as i64x2;
 
     _mm_add_si64, Add::add, __m64 as i64x1;
+    _mm_sub_si64, Sub::sub, __m64 as i64x1;
 
     _mm_add_pd, Add::add, __m128d as f64x2;
     _mm_sub_pd, Sub::sub, __m128d as f64x2;
@@ -18,11 +23,17 @@ binary! {
     _mm_adds_epi16, SimdInt::saturating_add, __m128i as i16x8;
     _mm_adds_epu8, SimdUint::saturating_add, __m128i as u8x16;
     _mm_adds_epu16, SimdUint::saturating_add, __m128i as u16x8;
+    _mm_subs_epi8, SimdInt::saturating_sub, __m128i as i8x16;
+    _mm_subs_epi16, SimdInt::saturating_sub, __m128i as i16x8;
+    _mm_subs_epu8, SimdUint::saturating_sub, __m128i as u8x16;
+    _mm_subs_epu16, SimdUint::saturating_sub, __m128i as u16x8;
 
     _mm_and_pd, BitAnd::bitand, __m128d as i64x2;
     _mm_or_pd, BitOr::bitor, __m128d as i64x2;
+    _mm_xor_pd, BitXor::bitxor, __m128d as i64x2;
     _mm_and_si128, BitAnd::bitand, __m128i as i64x2;
     _mm_or_si128, BitOr::bitor, __m128i as i64x2;
+    _mm_xor_si128, BitXor::bitxor, __m128i as i64x2;
 
     _mm_avg_epu8, pavgb, __m128i as u8x16;
     _mm_avg_epu16, pavgw, __m128i as u16x8;
@@ -62,6 +73,18 @@ binary! {
     _mm_cmpnlt_pd, macro cmpnlt, __m128d as f64x2;
     _mm_cmpord_pd, macro cmpord, __m128d as f64x2;
     _mm_cmpunord_pd, macro cmpunord, __m128d as f64x2;
+
+    _mm_unpackhi_epi8, macro unpackhi, __m128i as i8x16;
+    _mm_unpackhi_epi16, macro unpackhi, __m128i as i16x8;
+    _mm_unpackhi_epi32, macro unpackhi, __m128i as i32x4;
+    _mm_unpackhi_epi64, macro unpackhi, __m128i as i64x2;
+    _mm_unpacklo_epi8, macro unpacklo, __m128i as i8x16;
+    _mm_unpacklo_epi16, macro unpacklo, __m128i as i16x8;
+    _mm_unpacklo_epi32, macro unpacklo, __m128i as i32x4;
+    _mm_unpacklo_epi64, macro unpacklo, __m128i as i64x2;
+
+    _mm_unpacklo_pd, macro unpacklo, __m128d as f64x2;
+    _mm_unpackhi_pd, macro unpackhi, __m128d as f64x2;
 }
 
 binary_one_element! {
@@ -247,6 +270,102 @@ intrinsic! {
             0,
         ]).into()
     }
+
+    fn _mm_set_epi8(e15: i8, e14: i8, e13: i8, e12: i8, e11: i8, e10: i8, e9: i8, e8: i8, e7: i8, e6: i8, e5: i8, e4: i8, e3: i8, e2: i8, e1: i8, e0: i8) -> __m128i {
+        i8x16::from_array([e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15]).into()
+    }
+
+    fn _mm_setr_epi8(e15: i8, e14: i8, e13: i8, e12: i8, e11: i8, e10: i8, e9: i8, e8: i8, e7: i8, e6: i8, e5: i8, e4: i8, e3: i8, e2: i8, e1: i8, e0: i8) -> __m128i {
+        i8x16::from_array([e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15]).reverse().into()
+    }
+
+    fn _mm_set_epi16(e7: i16, e6: i16, e5: i16, e4: i16, e3: i16, e2: i16, e1: i16, e0: i16) -> __m128i {
+        i16x8::from_array([e0, e1, e2, e3, e4, e5, e6, e7]).into()
+    }
+
+    fn _mm_setr_epi16(e7: i16, e6: i16, e5: i16, e4: i16, e3: i16, e2: i16, e1: i16, e0: i16) -> __m128i {
+        i16x8::from_array([e0, e1, e2, e3, e4, e5, e6, e7]).reverse().into()
+    }
+
+    fn _mm_set_epi32(e3: i32, e2: i32, e1: i32, e0: i32) -> __m128i {
+        i32x4::from_array([e0, e1, e2, e3]).into()
+    }
+
+    fn _mm_setr_epi32(e3: i32, e2: i32, e1: i32, e0: i32) -> __m128i {
+        i32x4::from_array([e0, e1, e2, e3]).reverse().into()
+    }
+
+    fn _mm_set_epi64(e1: __m64, e0: __m64) -> __m128i {
+        let e1: i64x1 = e1.into();
+        let e0: i64x1 = e0.into();
+        i64x2::from_array([e0[0], e1[0]]).into()
+    }
+
+    fn _mm_setr_epi64(e1: __m64, e0: __m64) -> __m128i {
+        let e1: i64x1 = e1.into();
+        let e0: i64x1 = e0.into();
+        i64x2::from_array([e1[0], e0[0]]).into()
+    }
+
+    fn _mm_set_epi64x(e1: i64, e0: i64) -> __m128i {
+        i64x2::from_array([e0, e1]).into()
+    }
+
+    fn _mm_set_pd(e1: f64, e0: f64) -> __m128d {
+        f64x2::from_array([e0, e1]).into()
+    }
+
+    fn _mm_setr_pd(e1: f64, e0: f64) -> __m128d {
+        f64x2::from_array([e1, e0]).into()
+    }
+
+    fn _mm_set_pd1(a: f64) -> __m128d {
+        f64x2::splat(a).into()
+    }
+
+    fn _mm_set_sd(a: f64) -> __m128d {
+        f64x2::from_array([a, 0.]).into()
+    }
+
+    fn _mm_set1_epi8(a: i8) -> __m128i {
+        i8x16::splat(a).into()
+    }
+
+    fn _mm_set1_epi16(a: i16) -> __m128i {
+        i16x8::splat(a).into()
+    }
+
+    fn _mm_set1_epi32(a: i32) -> __m128i {
+        i32x4::splat(a).into()
+    }
+
+    fn _mm_set1_epi64x(a: i64) -> __m128i {
+        i64x2::splat(a).into()
+    }
+
+    fn _mm_set1_epi64(a: __m64) -> __m128i {
+        i64x2::splat(Into::<i64x1>::into(a)[0]).into()
+    }
+
+    fn _mm_set1_pd(a: f64) -> __m128d {
+        f64x2::splat(a).into()
+    }
+
+    fn _mm_setzero_pd() -> __m128d {
+        f64x2::splat(0.).into()
+    }
+
+    fn _mm_setzero_si128() -> __m128i {
+        i64x2::splat(0).into()
+    }
+
+    fn _mm_undefined_pd() -> __m128d {
+        _mm_setzero_pd()
+    }
+
+    fn _mm_undefined_si128() -> __m128i {
+        _mm_setzero_si128()
+    }
 }
 
 intrinsic! {
@@ -317,6 +436,74 @@ intrinsic! {
         a[0] = (mem_addr as *const i64).read_unaligned();
         a.into()
     }
+
+    unsafe fn _mm_store_pd(mem_addr: *mut f64, a: __m128d) {
+        (mem_addr as *mut __m128d).write(a)
+    }
+
+    unsafe fn _mm_store_pd1(mem_addr: *mut f64, a: __m128d) {
+        let a: f64x2 = a.into();
+        _mm_store_pd(mem_addr, simd_swizzle!(a, [0, 0]).into())
+    }
+
+    unsafe fn _mm_store_sd(mem_addr: *mut f64, a: __m128d) {
+        let a: f64x2 = a.into();
+        mem_addr.write_unaligned(a[0])
+    }
+
+    unsafe fn _mm_store_si128(mem_addr: *mut __m128i, a: __m128i) {
+        mem_addr.write(a)
+    }
+
+    unsafe fn _mm_store1_pd(mem_addr: *mut f64, a: __m128d) {
+        _mm_store_pd1(mem_addr, a)
+    }
+
+    unsafe fn _mm_storeh_pd(mem_addr: *mut f64, a: __m128d) {
+        let a: f64x2 = a.into();
+        mem_addr.write(a[1]);
+    }
+
+    unsafe fn _mm_storel_pd(mem_addr: *mut f64, a: __m128d) {
+        let a: f64x2 = a.into();
+        mem_addr.write(a[0]);
+    }
+
+    unsafe fn _mm_storel_epi64(mem_addr: *mut __m128i, a: __m128i) {
+        let a: i64x2 = a.into();
+        (mem_addr as *mut i64).write(a[0])
+    }
+
+    unsafe fn _mm_storer_pd(mem_addr: *mut f64, a: __m128d) {
+        (mem_addr as *mut f64x2).write(Into::<f64x2>::into(a).reverse())
+    }
+
+    unsafe fn _mm_storeu_pd(mem_addr: *mut f64, a: __m128d) {
+        (mem_addr as *mut __m128d).write_unaligned(a)
+    }
+
+    unsafe fn _mm_storeu_si128(mem_addr: *mut __m128i, a: __m128i) {
+        mem_addr.write_unaligned(a)
+    }
+
+    unsafe fn _mm_storeu_si16(mem_addr: *mut (), a: __m128i) {
+        (mem_addr as *mut i16).write_unaligned(Into::<i16x8>::into(a)[0])
+    }
+
+    unsafe fn _mm_storeu_si32(mem_addr: *mut (), a: __m128i) {
+        (mem_addr as *mut i32).write_unaligned(Into::<i32x4>::into(a)[0])
+    }
+
+    unsafe fn _mm_storeu_si64(mem_addr: *mut (), a: __m128i) {
+        (mem_addr as *mut i64).write_unaligned(Into::<i64x2>::into(a)[0])
+    }
+}
+
+intrinsic! {
+    fn _mm_shuffle_epi32<const IMM8: i32>(a: __m128i) -> __m128i {
+        let a: i32x4 = a.into();
+        shuffle4! { IMM8, a }.into()
+    }
 }
 
 macro_rules! comi {
@@ -340,8 +527,55 @@ comi! {
     _mm_comile_sd, le;
     _mm_comilt_sd, lt;
     _mm_comineq_sd, ne;
+
+    _mm_ucomieq_sd, eq;
+    _mm_ucomige_sd, ge;
+    _mm_ucomigt_sd, gt;
+    _mm_ucomile_sd, le;
+    _mm_ucomilt_sd, lt;
+    _mm_ucomineq_sd, ne;
+}
+
+macro_rules! shift {
+    { $($imm:ident, $func:path, $ty:ty;)* } => {
+        intrinsic! {
+            $(
+            fn $imm(a: __m128i, imm8: i32) -> __m128i {
+                let a: $ty = a.into();
+                $func(a, <$ty>::splat(imm8 as _)).into()
+            }
+            )*
+        }
+    }
+}
+
+shift! {
+    _mm_slli_epi16, Shl::shl, i16x8;
+    _mm_slli_epi32, Shl::shl, i32x4;
+    _mm_slli_epi64, Shl::shl, i64x2;
+    _mm_srai_epi16, Shr::shr, i16x8;
+    _mm_srai_epi32, Shr::shr, i32x4;
+    _mm_srai_epi64, Shr::shr, i64x2;
+    _mm_srli_epi16, Shr::shr, u16x8;
+    _mm_srli_epi32, Shr::shr, u32x4;
+    _mm_srli_epi64, Shr::shr, u64x2;
+}
+
+binary! {
+    _mm_sll_epi16, Shl::shl, __m128i as i16x8;
+    _mm_sll_epi32, Shl::shl, __m128i as i32x4;
+    _mm_sll_epi64, Shl::shl, __m128i as i64x2;
+    _mm_sra_epi16, Shr::shr, __m128i as i16x8;
+    _mm_sra_epi32, Shr::shr, __m128i as i32x4;
+    _mm_sra_epi64, Shr::shr, __m128i as i64x2;
+    _mm_srl_epi16, Shr::shr, __m128i as u16x8;
+    _mm_srl_epi32, Shr::shr, __m128i as u32x4;
+    _mm_srl_epi64, Shr::shr, __m128i as u64x2;
 }
 
 // TODO cvt
-// TODO bslli, bsrli
+// TODO bslli, bsrli, slli_si128
 // TODO maskmove
+// TODO shuffle_pd, shufflehi, shufflelo
+// TODO sqrt
+// TODO stream

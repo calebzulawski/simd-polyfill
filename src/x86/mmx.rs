@@ -214,16 +214,30 @@ alias! {
     _m_pxor = _mm_xor_si64;
 }
 
+binary! {
+    _mm_sll_pi16, core::ops::Shl::shl, __m64 as u16x4;
+    _mm_sll_pi32, core::ops::Shl::shl, __m64 as u32x2;
+    _mm_sll_si64, core::ops::Shl::shl, __m64 as u64x1;
+    _mm_sra_pi16, core::ops::Shr::shr, __m64 as i16x4;
+    _mm_sra_pi32, core::ops::Shr::shr, __m64 as i32x2;
+    _mm_srl_pi16, core::ops::Shr::shr, __m64 as u16x4;
+    _mm_srl_pi32, core::ops::Shr::shr, __m64 as u32x2;
+    _mm_srl_si64, core::ops::Shr::shr, __m64 as u64x1;
+
+    _m_psllw,  core::ops::Shl::shl, __m64 as u16x4;
+    _m_pslld,  core::ops::Shl::shl, __m64 as u32x2;
+    _m_psllq,  core::ops::Shl::shl, __m64 as u64x1;
+    _m_psraw,  core::ops::Shr::shr, __m64 as i16x4;
+    _m_psrad,  core::ops::Shr::shr, __m64 as i32x2;
+    _m_psrlw,  core::ops::Shr::shr, __m64 as u16x4;
+    _m_psrld,  core::ops::Shr::shr, __m64 as u32x2;
+    _m_psrlq,  core::ops::Shr::shr, __m64 as u64x1;
+}
+
 macro_rules! shift {
-    { $($name:ident, $imm:ident, $func:path, $ty:ty;)* } => {
+    { $($imm:ident, $func:path, $ty:ty;)* } => {
         intrinsic! {
             $(
-            fn $name(a: __m64, count: __m64) -> __m64 {
-                let a: $ty = a.into();
-                let count: u64x1 = count.into();
-                $func(a, <$ty>::splat(count[0] as _)).into()
-            }
-
             fn $imm(a: __m64, imm8: i32) -> __m64 {
                 let a: $ty = a.into();
                 $func(a, <$ty>::splat(imm8 as _)).into()
@@ -234,21 +248,21 @@ macro_rules! shift {
 }
 
 shift! {
-    _mm_sll_pi16, _mm_slli_pi16, core::ops::Shl::shl, u16x4;
-    _mm_sll_pi32, _mm_slli_pi32, core::ops::Shl::shl, u32x2;
-    _mm_sll_si64, _mm_slli_si64, core::ops::Shl::shl, u64x1;
-    _mm_sra_pi16, _mm_srai_pi16, core::ops::Shr::shr, i16x4;
-    _mm_sra_pi32, _mm_srai_pi32, core::ops::Shr::shr, i32x2;
-    _mm_srl_pi16, _mm_srli_pi16, core::ops::Shr::shr, u16x4;
-    _mm_srl_pi32, _mm_srli_pi32, core::ops::Shr::shr, u32x2;
-    _mm_srl_si64, _mm_srli_si64, core::ops::Shr::shr, u64x1;
+    _mm_slli_pi16, core::ops::Shl::shl, u16x4;
+    _mm_slli_pi32, core::ops::Shl::shl, u32x2;
+    _mm_slli_si64, core::ops::Shl::shl, u64x1;
+    _mm_srai_pi16, core::ops::Shr::shr, i16x4;
+    _mm_srai_pi32, core::ops::Shr::shr, i32x2;
+    _mm_srli_pi16, core::ops::Shr::shr, u16x4;
+    _mm_srli_pi32, core::ops::Shr::shr, u32x2;
+    _mm_srli_si64, core::ops::Shr::shr, u64x1;
 
-    _m_psllw, _m_psllwi, core::ops::Shl::shl, u16x4;
-    _m_pslld, _m_pslldi, core::ops::Shl::shl, u32x2;
-    _m_psllq, _m_psllqi, core::ops::Shl::shl, u64x1;
-    _m_psraw, _m_psrawi, core::ops::Shr::shr, i16x4;
-    _m_psrad, _m_psradi, core::ops::Shr::shr, i32x2;
-    _m_psrlw, _m_psrlwi, core::ops::Shr::shr, u16x4;
-    _m_psrld, _m_psrldi, core::ops::Shr::shr, u32x2;
-    _m_psrlq, _m_psrlqi, core::ops::Shr::shr, u64x1;
+    _m_psllwi, core::ops::Shl::shl, u16x4;
+    _m_pslldi, core::ops::Shl::shl, u32x2;
+    _m_psllqi, core::ops::Shl::shl, u64x1;
+    _m_psrawi, core::ops::Shr::shr, i16x4;
+    _m_psradi, core::ops::Shr::shr, i32x2;
+    _m_psrlwi, core::ops::Shr::shr, u16x4;
+    _m_psrldi, core::ops::Shr::shr, u32x2;
+    _m_psrlqi, core::ops::Shr::shr, u64x1;
 }
