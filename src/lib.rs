@@ -3,6 +3,7 @@
 //! Provides implementations of SIMD instruction sets that work on all other SIMD instruction sets.
 
 #![feature(portable_simd)]
+#![cfg_attr(test, feature(stdsimd))]
 #![allow(
     non_camel_case_types,
     clippy::missing_safety_doc,
@@ -117,11 +118,19 @@ pub(crate) use vector;
 
 #[cfg(test)]
 pub(crate) mod test {
-    use core::simd::Simd;
-    use proptest::{
-        array::UniformArrayStrategy,
-        strategy::{self, Strategy},
-    };
+    use proptest::strategy;
+
+    macro_rules! count {
+        {} => { 0usize };
+        { $x:tt $($xs:tt)* } => { 1usize + crate::test::count!($($xs)*) };
+    }
+
+    macro_rules! first {
+        { $first:tt $($rest:tt)* } => { $first };
+    }
+
+    pub(crate) use count;
+    pub(crate) use first;
 
     pub trait Equalish: Copy + PartialEq + core::fmt::Debug {
         fn equalish(self, other: Self) -> bool {
@@ -134,6 +143,16 @@ pub(crate) mod test {
     pub trait DefaultStrategy {
         type Strategy: strategy::Strategy<Value = Self>;
         fn default_strategy() -> Self::Strategy;
+    }
+
+    impl<T, const N: usize> DefaultStrategy for [T; N]
+    where
+        T: DefaultStrategy + core::fmt::Debug,
+    {
+        type Strategy = proptest::array::UniformArrayStrategy<T::Strategy, [T; N]>;
+        fn default_strategy() -> Self::Strategy {
+            Self::Strategy::new(T::default_strategy())
+        }
     }
 
     macro_rules! assert_equalish {
@@ -196,6 +215,7 @@ pub(crate) mod test {
     impl_tuple! { A, B }
     impl_tuple! { A, B, C }
     impl_tuple! { A, B, C, D }
+    impl_tuple! { A, B, C, D, E, F, G, H }
 
     pub(crate) use assert_equalish;
     pub(crate) use strategy_type;

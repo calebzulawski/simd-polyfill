@@ -1,43 +1,40 @@
 use super::*;
+use crate::into;
 
-unary! {
-    _mm_abs_epi8, SimdInt::abs, __m128i as i8x16;
-    _mm_abs_epi16, SimdInt::abs, __m128i as i16x8;
-    _mm_abs_epi32, SimdInt::abs, __m128i as i32x4;
-    _mm_abs_pi8, SimdInt::abs, __m64 as i8x8;
-    _mm_abs_pi16, SimdInt::abs, __m64 as i16x4;
-    _mm_abs_pi32, SimdInt::abs, __m64 as i32x2;
-}
+intrinsic! {
+    fn _mm_abs_epi8 (a: __m128i) -> __m128i { into!(SimdInt::abs, i8x16, a) }
+    fn _mm_abs_epi16(a: __m128i) -> __m128i { into!(SimdInt::abs, i16x8, a) }
+    fn _mm_abs_epi32(a: __m128i) -> __m128i { into!(SimdInt::abs, i32x4, a) }
+    #[notest()] fn _mm_abs_pi8  (a: __m64) -> __m64 { into!(SimdInt::abs, i8x8,  a) }
+    #[notest()] fn _mm_abs_pi16 (a: __m64) -> __m64 { into!(SimdInt::abs, i16x4, a) }
+    #[notest()] fn _mm_abs_pi32 (a: __m64) -> __m64 { into!(SimdInt::abs, i32x2, a) }
 
-binary! {
-    _mm_mulhrs_pi16, mulhrs, __m64 as i16x4;
-    _mm_mulhrs_epi16, mulhrs, __m128i as i16x8;
-}
+    #[notest()] fn _mm_mulhrs_pi16 (a: __m64, b: __m64) -> __m64 { into!(mulhrs, i16x4, a, b) }
+    fn _mm_mulhrs_epi16(a: __m128i, b: __m128i) -> __m128i { into!(mulhrs, i16x8, a, b) }
 
-binary! {
-    _mm_hadd_epi16, macro hadd, __m128i as i16x8;
-    _mm_hadd_epi32, macro hadd, __m128i as i32x4;
-    _mm_hadd_pi16, macro hadd, __m64 as i16x4;
-    _mm_hadd_pi32, macro hadd, __m64 as i32x2;
-    _mm_hadds_epi16, macro hadds, __m128i as i16x8;
-    _mm_hadds_pi16, macro hadds, __m64 as i16x4;
-    _mm_hsub_epi16, macro hsub, __m128i as i16x8;
-    _mm_hsub_epi32, macro hsub, __m128i as i32x4;
-    _mm_hsub_pi16, macro hsub, __m64 as i16x4;
-    _mm_hsub_pi32, macro hsub, __m64 as i32x2;
-    _mm_hsubs_epi16, macro hsubs, __m128i as i16x8;
-    _mm_hsubs_pi16, macro hsubs, __m64 as i16x4;
+    fn _mm_hadd_epi16 (a: __m128i, b: __m128i) -> __m128i { into!(hadd!,  i16x8, a, b) }
+    fn _mm_hadd_epi32 (a: __m128i, b: __m128i) -> __m128i { into!(hadd!,  i32x4, a, b) }
+    fn _mm_hadds_epi16(a: __m128i, b: __m128i) -> __m128i { into!(hadds!, i16x8, a, b) }
+    fn _mm_hsub_epi16 (a: __m128i, b: __m128i) -> __m128i { into!(hsub!,  i16x8, a, b) }
+    fn _mm_hsub_epi32 (a: __m128i, b: __m128i) -> __m128i { into!(hsub!,  i32x4, a, b) }
+    fn _mm_hsubs_epi16(a: __m128i, b: __m128i) -> __m128i { into!(hsubs!, i16x8, a, b) }
+    #[notest()] fn _mm_hadd_pi16  (a: __m64, b: __m64) -> __m64 { into!(hadd!,  i16x4, a, b) }
+    #[notest()] fn _mm_hadd_pi32  (a: __m64, b: __m64) -> __m64 { into!(hadd!,  i32x2, a, b) }
+    #[notest()] fn _mm_hadds_pi16 (a: __m64, b: __m64) -> __m64 { into!(hadds!, i16x4, a, b) }
+    #[notest()] fn _mm_hsub_pi16  (a: __m64, b: __m64) -> __m64 { into!(hsub!,  i16x4, a, b) }
+    #[notest()] fn _mm_hsub_pi32  (a: __m64, b: __m64) -> __m64 { into!(hsub!,  i32x2, a, b) }
+    #[notest()] fn _mm_hsubs_pi16 (a: __m64, b: __m64) -> __m64 { into!(hsubs!, i16x4, a, b) }
 
-    _mm_sign_epi8, macro sign, __m128i as i8x16;
-    _mm_sign_epi16, macro sign, __m128i as i16x8;
-    _mm_sign_epi32, macro sign, __m128i as i32x4;
-    _mm_sign_pi8, macro sign, __m64 as i8x8;
-    _mm_sign_pi16, macro sign, __m64 as i16x4;
-    _mm_sign_pi32, macro sign, __m64 as i32x2;
+    fn _mm_sign_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(sign!, i8x16, a, b) }
+    fn _mm_sign_epi16(a: __m128i, b: __m128i) -> __m128i { into!(sign!, i16x8, a, b) }
+    fn _mm_sign_epi32(a: __m128i, b: __m128i) -> __m128i { into!(sign!, i32x4, a, b) }
+    #[notest()] fn _mm_sign_pi8 (a: __m64, b: __m64) -> __m64 { into!(sign!, i8x8, a, b) }
+    #[notest()] fn _mm_sign_pi16(a: __m64, b: __m64) -> __m64 { into!(sign!, i16x4, a, b) }
+    #[notest()] fn _mm_sign_pi32(a: __m64, b: __m64) -> __m64 { into!(sign!, i32x2, a, b) }
 }
 
 intrinsic! {
-    fn _mm_maddubs_pi16(a: __m64, b: __m64) -> __m64 {
+    #[notest()] fn _mm_maddubs_pi16(a: __m64, b: __m64) -> __m64 {
         let a: u8x8 = a.into();
         let b: i8x8 = b.into();
         let a: i16x8 = a.cast();

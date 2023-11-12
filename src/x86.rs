@@ -7,26 +7,26 @@ use core::{
 };
 
 /// MMX instruction set
-// pub mod mmx;
+pub mod mmx;
 
 /// SSE instruction set
 pub mod sse;
 
 /// SSE2 instruction set
-// pub mod sse2;
+pub mod sse2;
 
 /// SSE3 instruction set
-// pub mod sse3;
+pub mod sse3;
 
 /// SSSE3 instruction set
-// pub mod ssse3;
+pub mod ssse3;
 
 vector! {
-    pub struct __m64(u8x8) from u8x8, u16x4, u32x2, u64x1, i8x8, i16x4, i32x2, i64x1;
+    pub struct __m64(u32x2) from u8x8, u16x4, u32x2, u64x1, i8x8, i16x4, i32x2, i64x1;
 }
 
 vector! {
-    pub struct __m128i(u8x16) from u8x16, u16x8, u32x4, u64x2, i8x16, i16x8, i32x4, i64x2;
+    pub struct __m128i(u32x4) from u8x16, u16x8, u32x4, u64x2, i8x16, i16x8, i32x4, i64x2;
 }
 
 vector! {
@@ -38,7 +38,7 @@ vector! {
 }
 
 vector! {
-    pub struct __m256i(u8x32) from u8x32, u16x16, u32x8, u64x4, i8x32, i16x16, i32x8, i64x4;
+    pub struct __m256i(u32x8) from u8x32, u16x16, u32x8, u64x4, i8x32, i16x16, i32x8, i64x4;
 }
 
 vector! {
@@ -64,6 +64,34 @@ macro_rules! make_test {
                 use crate::test::DefaultStrategy;
                 let mut runner = proptest::test_runner::TestRunner::default();
                 runner.run(&<($($ty,)*)>::default_strategy(), |($($var,)*): ($($ty,)*)| {
+                    let result = super::$name($($var),*);
+                    let result_intrin: $ret = unsafe {
+                        core::mem::transmute(
+                            core::arch::x86_64::$name(
+                                $(core::mem::transmute($var)),*
+                            ),
+                        )
+                    };
+                    crate::test::assert_equalish!(result, result_intrin);
+                    Ok(())
+                }).unwrap()
+            }
+        }
+    };
+    { #[homogenous()] $name:ident ($($var:ident: $ty:ty),+) -> $ret:ty } => {
+        #[cfg(test)]
+        mod $name {
+            type Input = [crate::test::first!($($ty)*); crate::test::count!($($ty)*)];
+
+            #[test]
+            fn test() {
+                //if !is_x86_feature_detected!($target_feature) {
+                //    return;
+                //}
+                use crate::test::DefaultStrategy;
+                let mut runner = proptest::test_runner::TestRunner::default();
+
+                runner.run(&<Input>::default_strategy(), |[$($var,)*]: Input| {
                     let result = super::$name($($var),*);
                     let result_intrin = unsafe {
                         core::mem::transmute(
@@ -110,14 +138,22 @@ macro_rules! intrinsic {
         )*
     };
     {
-        $($(#[notest $notest:tt])? fn $name:ident $args:tt $(-> $ret:ty)? { $($body:tt)* })*
+        $(
+        $(#[notest $notest:tt])?
+        $(#[homogenous $homogenous:tt])?
+        fn $name:ident $args:tt $(-> $ret:ty)? { $($body:tt)* }
+        )*
     } => {
         $(
         #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
         #[inline]
         pub fn $name $args $(-> $ret)* { $($body)* }
 
-        make_test! { $(#[notest $notest])? $name $args $(-> $ret)? }
+        make_test! {
+            $(#[notest $notest])?
+            $(#[homogenous $homogenous])?
+            $name $args $(-> $ret)?
+        }
         )*
     };
     {
@@ -135,10 +171,12 @@ macro_rules! intrinsic {
 mod test {
     use super::*;
     use crate::test::{strategy_type, Equalish};
+    strategy_type! { __m64, i32, 2 }
     strategy_type! { __m128, f32, 4 }
     strategy_type! { __m128d, f64, 2 }
     strategy_type! { __m128i, i32, 4 }
 
+    impl Equalish for __m64 {}
     impl Equalish for __m128i {}
     impl Equalish for __m128 {
         fn equalish(self, other: Self) -> bool {
@@ -153,159 +191,6 @@ mod test {
             let b: i64x2 = other.into();
             a == b
         }
-    }
-}
-
-macro_rules! binary_one_element {
-    {
-        $(
-            $name:ident, $func:expr, $ty1:ty as $inner1:ty, $ty2:ty as $inner2:ty, $ret:ty;
-        )*
-    } => {
-        $(
-        intrinsic! {
-            fn $name(a: $ty1, b: $ty2) -> $ret {
-                let mut a: $inner1 = a.into();
-                let b: $inner2 = b.into();
-                a[0] = $func(a, b)[0];
-                a.into()
-            }
-        }
-        )*
-    };
-    {
-        $(
-            $name:ident, $func:expr, $ty:ty as $inner:ty;
-        )*
-    } => {
-        $(
-        binary! { $name, $func, $ty as $inner, $ty as $inner, $ty; }
-        )*
-    };
-    {
-        $(
-            $name:ident, macro $func:path, $ty1:ty as $inner1:ty, $ty2:ty as $inner2:ty, $ret:ty;
-        )*
-    } => {
-        $(
-        intrinsic! {
-            fn $name(a: $ty1, b: $ty2) -> $ret {
-                let mut a: $inner1 = a.into();
-                let b: $inner2 = b.into();
-                a[0] = $func!(a, b)[0];
-                a.into()
-            }
-        }
-        )*
-    };
-    {
-        $(
-            $name:ident, macro $func:path, $ty:ty as $inner:ty;
-        )*
-    } => {
-        $(
-        binary! { $name, macro $func, $ty as $inner, $ty as $inner, $ty; }
-        )*
-    }
-}
-
-macro_rules! binary {
-    {
-        $(
-            $name:ident, $func:expr, $ty1:ty as $inner1:ty, $ty2:ty as $inner2:ty, $ret:ty;
-        )*
-    } => {
-        $(
-        intrinsic! {
-            fn $name(a: $ty1, b: $ty2) -> $ret {
-                let a: $inner1 = a.into();
-                let b: $inner2 = b.into();
-                $func(a, b).into()
-            }
-        }
-        )*
-    };
-    {
-        $(
-            $name:ident, $func:expr, $ty:ty as $inner:ty;
-        )*
-    } => {
-        $(
-        binary! { $name, $func, $ty as $inner, $ty as $inner, $ty; }
-        )*
-    };
-    {
-        $(
-            $name:ident, macro $func:path, $ty1:ty as $inner1:ty, $ty2:ty as $inner2:ty, $ret:ty;
-        )*
-    } => {
-        $(
-        intrinsic! {
-            fn $name(a: $ty1, b: $ty2) -> $ret {
-                let a: $inner1 = a.into();
-                let b: $inner2 = b.into();
-                $func!(a, b).into()
-            }
-        }
-        )*
-    };
-    {
-        $(
-            $name:ident, macro $func:path, $ty:ty as $inner:ty;
-        )*
-    } => {
-        $(
-        binary! { $name, macro $func, $ty as $inner, $ty as $inner, $ty; }
-        )*
-    }
-}
-
-macro_rules! unary {
-    {
-        $(
-            $name:ident, $func:expr, $ty:ty as $inner:ty, $ret:ty;
-        )*
-    } => {
-        $(
-        intrinsic! {
-            fn $name(a: $ty) -> $ret {
-                let a: $inner = a.into();
-                $func(a).into()
-            }
-        }
-        )*
-    };
-    {
-        $(
-            $name:ident, $func:expr, $ty:ty as $inner:ty;
-        )*
-    } => {
-        $(
-        unary! { $name, $func, $ty as $inner, $ty; }
-        )*
-    };
-    {
-        $(
-            $name:ident, macro $func:path, $ty:ty as $inner:ty, $ret:ty;
-        )*
-    } => {
-        $(
-        intrinsic! {
-            fn $name(a: $ty) -> $ret {
-                let a: $inner = a.into();
-                $func!(a).into()
-            }
-        }
-        )*
-    };
-    {
-        $(
-            $name:ident, macro $func:path, $ty:ty as $inner:ty;
-        )*
-    } => {
-        $(
-        unary! { $name, macro $func, $ty as $inner, $ty; }
-        )*
     }
 }
 
@@ -571,7 +456,7 @@ where
 {
     let a: Simd<i32, N> = a.cast();
     let b: Simd<i32, N> = b.cast();
-    (((a * b) >> Simd::splat(14)) + Simd::splat(1)).cast()
+    ((((a * b) >> Simd::splat(14)) + Simd::splat(1)) >> Simd::splat(1)).cast()
 }
 
 pub(crate) fn addsub<T, const N: usize>(a: Simd<T, N>, b: Simd<T, N>) -> Simd<T, N>
@@ -615,9 +500,49 @@ where
     r.cast()
 }
 
+macro_rules! shift_logical {
+    { $func:path, $ty:ty, $a:expr, $b:expr } => {
+        {
+            let a: $ty = $a.into();
+            let count = $b as u64;
+            if count >= (128 / <$ty>::LANES) as u64 {
+                <$ty>::splat(0).into()
+            } else {
+                $func(a, <$ty>::splat(count as _)).into()
+            }
+        }
+    }
+}
+
+macro_rules! shift_right {
+    { $ty:ty, $a:expr, $b:expr } => {
+        {
+            let a: $ty = $a.into();
+            let count = $b as u64;
+            (a >> <$ty>::splat(count.clamp(0, (128 / <$ty>::LANES - 1) as _) as _)).into()
+        }
+    }
+}
+
+macro_rules! sxl {
+    { $func:path, $ty:ty, $ty2:ty, $a:expr, $b:expr } => {
+        {
+            let b: $ty2 = $b.into();
+            shift_logical!($func, $ty, $a, b[0])
+        }
+    }
+}
+
+macro_rules! sra {
+    { $ty:ty, $ty2:ty, $a:expr, $b:expr } => {
+        {
+            let b: $ty2 = $b.into();
+            shift_right!($ty, $a, b[0])
+        }
+    }
+}
+
 pub(crate) use andnot;
-pub(crate) use binary;
-pub(crate) use binary_one_element;
 pub(crate) use cmpeq;
 pub(crate) use cmpge;
 pub(crate) use cmpgt;
@@ -641,8 +566,11 @@ pub(crate) use make_test;
 pub(crate) use packs2;
 pub(crate) use packs4;
 pub(crate) use packs8;
+pub(crate) use shift_logical;
+pub(crate) use shift_right;
 pub(crate) use shuffle4;
 pub(crate) use sign;
-pub(crate) use unary;
+pub(crate) use sra;
+pub(crate) use sxl;
 pub(crate) use unpackhi;
 pub(crate) use unpacklo;

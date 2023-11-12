@@ -1,118 +1,111 @@
 use super::*;
+use crate::{into, into_first};
 use core::simd::ToBitMask;
 
-binary! {
-    _mm_add_epi8, Add::add, __m128i as i8x16;
-    _mm_add_epi16, Add::add, __m128i as i16x8;
-    _mm_add_epi32, Add::add, __m128i as i32x4;
-    _mm_add_epi64, Add::add, __m128i as i64x2;
-    _mm_sub_epi8, Sub::sub, __m128i as i8x16;
-    _mm_sub_epi16, Sub::sub, __m128i as i16x8;
-    _mm_sub_epi32, Sub::sub, __m128i as i32x4;
-    _mm_sub_epi64, Sub::sub, __m128i as i64x2;
-
-    _mm_add_si64, Add::add, __m64 as i64x1;
-    _mm_sub_si64, Sub::sub, __m64 as i64x1;
-
-    _mm_add_pd, Add::add, __m128d as f64x2;
-    _mm_sub_pd, Sub::sub, __m128d as f64x2;
-    _mm_mul_pd, Mul::mul, __m128d as f64x2;
-    _mm_div_pd, Div::div, __m128d as f64x2;
-
-    _mm_adds_epi8, SimdInt::saturating_add, __m128i as i8x16;
-    _mm_adds_epi16, SimdInt::saturating_add, __m128i as i16x8;
-    _mm_adds_epu8, SimdUint::saturating_add, __m128i as u8x16;
-    _mm_adds_epu16, SimdUint::saturating_add, __m128i as u16x8;
-    _mm_subs_epi8, SimdInt::saturating_sub, __m128i as i8x16;
-    _mm_subs_epi16, SimdInt::saturating_sub, __m128i as i16x8;
-    _mm_subs_epu8, SimdUint::saturating_sub, __m128i as u8x16;
-    _mm_subs_epu16, SimdUint::saturating_sub, __m128i as u16x8;
-
-    _mm_and_pd, BitAnd::bitand, __m128d as i64x2;
-    _mm_or_pd, BitOr::bitor, __m128d as i64x2;
-    _mm_xor_pd, BitXor::bitxor, __m128d as i64x2;
-    _mm_and_si128, BitAnd::bitand, __m128i as i64x2;
-    _mm_or_si128, BitOr::bitor, __m128i as i64x2;
-    _mm_xor_si128, BitXor::bitxor, __m128i as i64x2;
-
-    _mm_avg_epu8, pavgb, __m128i as u8x16;
-    _mm_avg_epu16, pavgw, __m128i as u16x8;
-
-    _mm_max_epi16, SimdOrd::simd_max, __m128i as i16x8;
-    _mm_max_epu8, SimdOrd::simd_max, __m128i as u8x16;
-    _mm_min_epi16, SimdOrd::simd_min, __m128i as i16x8;
-    _mm_min_epu8, SimdOrd::simd_min, __m128i as u8x16;
-}
-
-binary! {
-    _mm_max_pd, macro float_max, __m128d as f64x2;
-    _mm_min_pd, macro float_min, __m128d as f64x2;
-
-    _mm_andnot_pd, macro andnot, __m128d as i64x2;
-    _mm_andnot_si128, macro andnot, __m128i as i64x2;
-
-    _mm_cmpeq_epi8, macro cmpeq, __m128i as i8x16;
-    _mm_cmpeq_epi16, macro cmpeq, __m128i as i16x8;
-    _mm_cmpeq_epi32, macro cmpeq, __m128i as i32x4;
-    _mm_cmpgt_epi8, macro cmpgt, __m128i as i8x16;
-    _mm_cmpgt_epi16, macro cmpgt, __m128i as i16x8;
-    _mm_cmpgt_epi32, macro cmpgt, __m128i as i32x4;
-    _mm_cmplt_epi8, macro cmplt, __m128i as i8x16;
-    _mm_cmplt_epi16, macro cmplt, __m128i as i16x8;
-    _mm_cmplt_epi32, macro cmplt, __m128i as i32x4;
-
-    _mm_cmpeq_pd, macro cmpeq, __m128d as f64x2;
-    _mm_cmpge_pd, macro cmpge, __m128d as f64x2;
-    _mm_cmpgt_pd, macro cmpgt, __m128d as f64x2;
-    _mm_cmple_pd, macro cmple, __m128d as f64x2;
-    _mm_cmplt_pd, macro cmplt, __m128d as f64x2;
-    _mm_cmpneq_pd, macro cmpneq, __m128d as f64x2;
-    _mm_cmpnge_pd, macro cmpnge, __m128d as f64x2;
-    _mm_cmpngt_pd, macro cmpngt, __m128d as f64x2;
-    _mm_cmpnle_pd, macro cmpnle, __m128d as f64x2;
-    _mm_cmpnlt_pd, macro cmpnlt, __m128d as f64x2;
-    _mm_cmpord_pd, macro cmpord, __m128d as f64x2;
-    _mm_cmpunord_pd, macro cmpunord, __m128d as f64x2;
-
-    _mm_unpackhi_epi8, macro unpackhi, __m128i as i8x16;
-    _mm_unpackhi_epi16, macro unpackhi, __m128i as i16x8;
-    _mm_unpackhi_epi32, macro unpackhi, __m128i as i32x4;
-    _mm_unpackhi_epi64, macro unpackhi, __m128i as i64x2;
-    _mm_unpacklo_epi8, macro unpacklo, __m128i as i8x16;
-    _mm_unpacklo_epi16, macro unpacklo, __m128i as i16x8;
-    _mm_unpacklo_epi32, macro unpacklo, __m128i as i32x4;
-    _mm_unpacklo_epi64, macro unpacklo, __m128i as i64x2;
-
-    _mm_unpacklo_pd, macro unpacklo, __m128d as f64x2;
-    _mm_unpackhi_pd, macro unpackhi, __m128d as f64x2;
-}
-
-binary_one_element! {
-    _mm_max_sd, macro float_max, __m128d as f64x2;
-    _mm_min_sd, macro float_min, __m128d as f64x2;
-
-    _mm_cmpeq_sd, macro cmpeq, __m128d as f64x2;
-    _mm_cmpge_sd, macro cmpge, __m128d as f64x2;
-    _mm_cmpgt_sd, macro cmpgt, __m128d as f64x2;
-    _mm_cmple_sd, macro cmple, __m128d as f64x2;
-    _mm_cmplt_sd, macro cmplt, __m128d as f64x2;
-    _mm_cmpneq_sd, macro cmpneq, __m128d as f64x2;
-    _mm_cmpnge_sd, macro cmpnge, __m128d as f64x2;
-    _mm_cmpngt_sd, macro cmpngt, __m128d as f64x2;
-    _mm_cmpnle_sd, macro cmpnle, __m128d as f64x2;
-    _mm_cmpnlt_sd, macro cmpnlt, __m128d as f64x2;
-    _mm_cmpord_sd, macro cmpord, __m128d as f64x2;
-    _mm_cmpunord_sd, macro cmpunord, __m128d as f64x2;
-}
-
-binary_one_element! {
-    _mm_add_sd, Add::add, __m128d as f64x2;
-    _mm_sub_sd, Sub::sub, __m128d as f64x2;
-    _mm_mul_sd, Mul::mul, __m128d as f64x2;
-    _mm_div_sd, Div::div, __m128d as f64x2;
-}
-
 intrinsic! {
+    fn _mm_add_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(Add::add, i8x16, a, b) }
+    fn _mm_add_epi16(a: __m128i, b: __m128i) -> __m128i { into!(Add::add, i16x8, a, b) }
+    fn _mm_add_epi32(a: __m128i, b: __m128i) -> __m128i { into!(Add::add, i32x4, a, b) }
+    fn _mm_add_epi64(a: __m128i, b: __m128i) -> __m128i { into!(Add::add, i64x2, a, b) }
+    fn _mm_sub_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(Sub::sub, i8x16, a, b) }
+    fn _mm_sub_epi16(a: __m128i, b: __m128i) -> __m128i { into!(Sub::sub, i16x8, a, b) }
+    fn _mm_sub_epi32(a: __m128i, b: __m128i) -> __m128i { into!(Sub::sub, i32x4, a, b) }
+    fn _mm_sub_epi64(a: __m128i, b: __m128i) -> __m128i { into!(Sub::sub, i64x2, a, b) }
+
+    #[notest()] fn _mm_add_si64(a: __m64, b: __m64) -> __m64 { into!(Add::add, i64x1, a, b) }
+    #[notest()] fn _mm_sub_si64(a: __m64, b: __m64) -> __m64 { into!(Sub::sub, i64x1, a, b) }
+
+    fn _mm_add_pd(a: __m128d, b: __m128d) -> __m128d { into!(Add::add, f64x2, a, b) }
+    fn _mm_sub_pd(a: __m128d, b: __m128d) -> __m128d { into!(Sub::sub, f64x2, a, b) }
+    fn _mm_mul_pd(a: __m128d, b: __m128d) -> __m128d { into!(Mul::mul, f64x2, a, b) }
+    fn _mm_div_pd(a: __m128d, b: __m128d) -> __m128d { into!(Div::div, f64x2, a, b) }
+
+    fn _mm_adds_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(SimdInt::saturating_add,  i8x16, a, b) }
+    fn _mm_adds_epi16(a: __m128i, b: __m128i) -> __m128i { into!(SimdInt::saturating_add,  i16x8, a, b) }
+    fn _mm_adds_epu8 (a: __m128i, b: __m128i) -> __m128i { into!(SimdUint::saturating_add, u8x16, a, b) }
+    fn _mm_adds_epu16(a: __m128i, b: __m128i) -> __m128i { into!(SimdUint::saturating_add, u16x8, a, b) }
+    fn _mm_subs_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(SimdInt::saturating_sub,  i8x16, a, b) }
+    fn _mm_subs_epi16(a: __m128i, b: __m128i) -> __m128i { into!(SimdInt::saturating_sub,  i16x8, a, b) }
+    fn _mm_subs_epu8 (a: __m128i, b: __m128i) -> __m128i { into!(SimdUint::saturating_sub, u8x16, a, b) }
+    fn _mm_subs_epu16(a: __m128i, b: __m128i) -> __m128i { into!(SimdUint::saturating_sub, u16x8, a, b) }
+
+    fn _mm_and_pd   (a: __m128d, b: __m128d) -> __m128d { into!(BitAnd::bitand, i64x2, a, b) }
+    fn _mm_or_pd    (a: __m128d, b: __m128d) -> __m128d { into!(BitOr::bitor,   i64x2, a, b) }
+    fn _mm_xor_pd   (a: __m128d, b: __m128d) -> __m128d { into!(BitXor::bitxor, i64x2, a, b) }
+    fn _mm_and_si128(a: __m128i, b: __m128i) -> __m128i { into!(BitAnd::bitand, i64x2, a, b) }
+    fn _mm_or_si128 (a: __m128i, b: __m128i) -> __m128i { into!(BitOr::bitor,   i64x2, a, b) }
+    fn _mm_xor_si128(a: __m128i, b: __m128i) -> __m128i { into!(BitXor::bitxor, i64x2, a, b) }
+
+    fn _mm_avg_epu8 (a: __m128i, b: __m128i) -> __m128i { into!(pavgb, u8x16, a, b) }
+    fn _mm_avg_epu16(a: __m128i, b: __m128i) -> __m128i { into!(pavgw, u16x8, a, b) }
+
+    fn _mm_max_epi16(a: __m128i, b: __m128i) -> __m128i { into!(SimdOrd::simd_max, i16x8, a, b) }
+    fn _mm_max_epu8 (a: __m128i, b: __m128i) -> __m128i { into!(SimdOrd::simd_max, u8x16, a, b) }
+    fn _mm_min_epi16(a: __m128i, b: __m128i) -> __m128i { into!(SimdOrd::simd_min, i16x8, a, b) }
+    fn _mm_min_epu8 (a: __m128i, b: __m128i) -> __m128i { into!(SimdOrd::simd_min, u8x16, a, b) }
+
+    fn _mm_max_pd(a: __m128d, b: __m128d) -> __m128d { into!(float_max!, f64x2, a, b) }
+    fn _mm_min_pd(a: __m128d, b: __m128d) -> __m128d { into!(float_min!, f64x2, a, b) }
+
+    fn _mm_andnot_pd   (a: __m128d, b: __m128d) -> __m128d { into!(andnot!, i64x2, a, b) }
+    fn _mm_andnot_si128(a: __m128i, b: __m128i) -> __m128i { into!(andnot!, i64x2, a, b) }
+
+    fn _mm_cmpeq_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(cmpeq!, i8x16, a, b) }
+    fn _mm_cmpeq_epi16(a: __m128i, b: __m128i) -> __m128i { into!(cmpeq!, i16x8, a, b) }
+    fn _mm_cmpeq_epi32(a: __m128i, b: __m128i) -> __m128i { into!(cmpeq!, i32x4, a, b) }
+    fn _mm_cmpgt_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(cmpgt!, i8x16, a, b) }
+    fn _mm_cmpgt_epi16(a: __m128i, b: __m128i) -> __m128i { into!(cmpgt!, i16x8, a, b) }
+    fn _mm_cmpgt_epi32(a: __m128i, b: __m128i) -> __m128i { into!(cmpgt!, i32x4, a, b) }
+    fn _mm_cmplt_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(cmplt!, i8x16, a, b) }
+    fn _mm_cmplt_epi16(a: __m128i, b: __m128i) -> __m128i { into!(cmplt!, i16x8, a, b) }
+    fn _mm_cmplt_epi32(a: __m128i, b: __m128i) -> __m128i { into!(cmplt!, i32x4, a, b) }
+
+    fn _mm_cmpeq_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpeq!, f64x2, a, b) }
+    fn _mm_cmpge_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpge!, f64x2, a, b) }
+    fn _mm_cmpgt_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpgt!, f64x2, a, b) }
+    fn _mm_cmple_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmple!, f64x2, a, b) }
+    fn _mm_cmplt_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmplt!, f64x2, a, b) }
+    fn _mm_cmpneq_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpneq!, f64x2, a, b) }
+    fn _mm_cmpnge_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpnge!, f64x2, a, b) }
+    fn _mm_cmpngt_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpngt!, f64x2, a, b) }
+    fn _mm_cmpnle_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpnle!, f64x2, a, b) }
+    fn _mm_cmpnlt_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpnlt!, f64x2, a, b) }
+    fn _mm_cmpord_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpord!, f64x2, a, b) }
+    fn _mm_cmpunord_pd(a: __m128d, b: __m128d) -> __m128d { into!(cmpunord!, f64x2, a, b) }
+
+    fn _mm_unpackhi_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(unpackhi!, i8x16, a, b) }
+    fn _mm_unpackhi_epi16(a: __m128i, b: __m128i) -> __m128i { into!(unpackhi!, i16x8, a, b) }
+    fn _mm_unpackhi_epi32(a: __m128i, b: __m128i) -> __m128i { into!(unpackhi!, i32x4, a, b) }
+    fn _mm_unpackhi_epi64(a: __m128i, b: __m128i) -> __m128i { into!(unpackhi!, i64x2, a, b) }
+    fn _mm_unpacklo_epi8 (a: __m128i, b: __m128i) -> __m128i { into!(unpacklo!, i8x16, a, b) }
+    fn _mm_unpacklo_epi16(a: __m128i, b: __m128i) -> __m128i { into!(unpacklo!, i16x8, a, b) }
+    fn _mm_unpacklo_epi32(a: __m128i, b: __m128i) -> __m128i { into!(unpacklo!, i32x4, a, b) }
+    fn _mm_unpacklo_epi64(a: __m128i, b: __m128i) -> __m128i { into!(unpacklo!, i64x2, a, b) }
+
+    fn _mm_unpacklo_pd(a: __m128d, b: __m128d) -> __m128d { into!(unpacklo!, f64x2, a, b) }
+    fn _mm_unpackhi_pd(a: __m128d, b: __m128d) -> __m128d { into!(unpackhi!, f64x2, a, b) }
+
+    fn _mm_max_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(float_max!, f64x2, a, b) }
+    fn _mm_min_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(float_min!, f64x2, a, b) }
+
+    fn _mm_cmpeq_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpeq!, f64x2, a, b) }
+    fn _mm_cmpge_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpge!, f64x2, a, b) }
+    fn _mm_cmpgt_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpgt!, f64x2, a, b) }
+    fn _mm_cmple_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmple!, f64x2, a, b) }
+    fn _mm_cmplt_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmplt!, f64x2, a, b) }
+    fn _mm_cmpneq_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpneq!, f64x2, a, b) }
+    fn _mm_cmpnge_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpnge!, f64x2, a, b) }
+    fn _mm_cmpngt_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpngt!, f64x2, a, b) }
+    fn _mm_cmpnle_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpnle!, f64x2, a, b) }
+    fn _mm_cmpnlt_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpnlt!, f64x2, a, b) }
+    fn _mm_cmpord_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpord!, f64x2, a, b) }
+    fn _mm_cmpunord_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(fcmpunord!, f64x2, a, b) }
+
+    fn _mm_add_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(Add::add, f64x2, a, b) }
+    fn _mm_sub_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(Sub::sub, f64x2, a, b) }
+    fn _mm_mul_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(Mul::mul, f64x2, a, b) }
+    fn _mm_div_sd(a: __m128d, b: __m128d) -> __m128d { into_first!(Div::div, f64x2, a, b) }
+
     fn _mm_castpd_ps(a: __m128d) -> __m128 {
         unsafe { core::mem::transmute(a) }
     }
@@ -136,18 +129,22 @@ intrinsic! {
     fn _mm_castsi128_ps(a: __m128i) -> __m128 {
         unsafe { core::mem::transmute(a) }
     }
+}
 
-    fn _mm_extract_epi16(a: __m128i, imm8: i32) -> i32 {
+intrinsic! {
+    fn _mm_extract_epi16<const IMM8: i32>(a: __m128i) -> i32 {
         let a: i16x8 = a.into();
-        a[(imm8 & 0b111) as usize] as i32
+        a[(IMM8 & 0b111) as usize] as i32
     }
 
-    fn _mm_insert_epi16(a: __m128i, i: i32, imm8: i32) -> __m128i {
+    fn _mm_insert_epi16<const IMM8: i32>(a: __m128i, i: i32) -> __m128i {
         let mut a: i16x8 = a.into();
-        a[(imm8 & 0x111) as usize] = i as i16;
+        a[(IMM8 & 0x111) as usize] = i as i16;
         a.into()
     }
+}
 
+intrinsic! {
     fn _mm_madd_epi16(a: __m128i, b: __m128i) -> __m128i {
         let a: i16x8 = a.into();
         let b: i16x8 = b.into();
@@ -180,22 +177,25 @@ intrinsic! {
         a.simd_lt(i64x2::splat(0)).to_bitmask() as i32
     }
 
+    #[notest()]
     fn _mm_movepi64_pi64(a: __m128i) -> __m64 {
         i64x1::splat(Into::<i64x2>::into(a)[0]).into()
     }
 
+    #[notest()]
     fn _mm_movpi64_epi64(a: __m64) -> __m128i {
         i64x2::from_array([Into::<i64x1>::into(a)[0], 0]).into()
     }
 
-    fn _mm_mul_epi32(a: __m128i, b: __m128i) -> __m128i {
+    fn _mm_mul_epu32(a: __m128i, b: __m128i) -> __m128i {
         let a: u32x4 = a.into();
         let b: u32x4 = b.into();
         let a: u64x4 = a.cast();
         let b: u64x4 = b.cast();
-        simd_swizzle!(a * b, [0, 1]).into()
+        simd_swizzle!(a * b, [0, 2]).into()
     }
 
+    #[notest()]
     fn _mm_mul_su32(a: __m64, b: __m64) -> __m64 {
         let a: u32x2 = a.into();
         let b: u32x2 = b.into();
@@ -271,10 +271,12 @@ intrinsic! {
         ]).into()
     }
 
+    #[homogenous()]
     fn _mm_set_epi8(e15: i8, e14: i8, e13: i8, e12: i8, e11: i8, e10: i8, e9: i8, e8: i8, e7: i8, e6: i8, e5: i8, e4: i8, e3: i8, e2: i8, e1: i8, e0: i8) -> __m128i {
         i8x16::from_array([e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15]).into()
     }
 
+    #[homogenous()]
     fn _mm_setr_epi8(e15: i8, e14: i8, e13: i8, e12: i8, e11: i8, e10: i8, e9: i8, e8: i8, e7: i8, e6: i8, e5: i8, e4: i8, e3: i8, e2: i8, e1: i8, e0: i8) -> __m128i {
         i8x16::from_array([e0, e1, e2, e3, e4, e5, e6, e7, e8, e9, e10, e11, e12, e13, e14, e15]).reverse().into()
     }
@@ -295,12 +297,14 @@ intrinsic! {
         i32x4::from_array([e0, e1, e2, e3]).reverse().into()
     }
 
+    #[notest()]
     fn _mm_set_epi64(e1: __m64, e0: __m64) -> __m128i {
         let e1: i64x1 = e1.into();
         let e0: i64x1 = e0.into();
         i64x2::from_array([e0[0], e1[0]]).into()
     }
 
+    #[notest()]
     fn _mm_setr_epi64(e1: __m64, e0: __m64) -> __m128i {
         let e1: i64x1 = e1.into();
         let e0: i64x1 = e0.into();
@@ -343,6 +347,7 @@ intrinsic! {
         i64x2::splat(a).into()
     }
 
+    #[notest()]
     fn _mm_set1_epi64(a: __m64) -> __m128i {
         i64x2::splat(Into::<i64x1>::into(a)[0]).into()
     }
@@ -507,70 +512,50 @@ intrinsic! {
 }
 
 macro_rules! comi {
-    { $($name:ident, $func:ident;)* } => {
-        intrinsic! {
-            $(
-            fn $name(a: __m128d, b: __m128d) -> i32 {
-                let a: f64x2 = a.into();
-                let b: f64x2 = b.into();
-                a[0].$func(&b[0]) as i32
-            }
-            )*
+    { $f:ident, $a:expr, $b:expr } => {
+        {
+            let a: f64x2 = $a.into();
+            let b: f64x2 = $b.into();
+            a[0].$f(&b[0]) as i32
         }
     }
 }
 
-comi! {
-    _mm_comieq_sd, eq;
-    _mm_comige_sd, ge;
-    _mm_comigt_sd, gt;
-    _mm_comile_sd, le;
-    _mm_comilt_sd, lt;
-    _mm_comineq_sd, ne;
-
-    _mm_ucomieq_sd, eq;
-    _mm_ucomige_sd, ge;
-    _mm_ucomigt_sd, gt;
-    _mm_ucomile_sd, le;
-    _mm_ucomilt_sd, lt;
-    _mm_ucomineq_sd, ne;
+intrinsic! {
+    fn _mm_comieq_sd(a: __m128d, b: __m128d) -> i32 { comi!(eq, a, b) }
+    fn _mm_comige_sd(a: __m128d, b: __m128d) -> i32 { comi!(ge, a, b) }
+    fn _mm_comigt_sd(a: __m128d, b: __m128d) -> i32 { comi!(gt, a, b) }
+    fn _mm_comile_sd(a: __m128d, b: __m128d) -> i32 { comi!(le, a, b) }
+    fn _mm_comilt_sd(a: __m128d, b: __m128d) -> i32 { comi!(lt, a, b) }
+    fn _mm_comineq_sd(a: __m128d, b: __m128d) -> i32 { comi!(ne, a, b) }
+    fn _mm_ucomieq_sd(a: __m128d, b: __m128d) -> i32 { comi!(eq, a, b) }
+    fn _mm_ucomige_sd(a: __m128d, b: __m128d) -> i32 { comi!(ge, a, b) }
+    fn _mm_ucomigt_sd(a: __m128d, b: __m128d) -> i32 { comi!(gt, a, b) }
+    fn _mm_ucomile_sd(a: __m128d, b: __m128d) -> i32 { comi!(le, a, b) }
+    fn _mm_ucomilt_sd(a: __m128d, b: __m128d) -> i32 { comi!(lt, a, b) }
+    fn _mm_ucomineq_sd(a: __m128d, b: __m128d) -> i32 { comi!(ne, a, b) }
 }
 
-macro_rules! shift {
-    { $($imm:ident, $func:path, $ty:ty;)* } => {
-        intrinsic! {
-            $(
-            fn $imm(a: __m128i, imm8: i32) -> __m128i {
-                let a: $ty = a.into();
-                $func(a, <$ty>::splat(imm8 as _)).into()
-            }
-            )*
-        }
-    }
+intrinsic! {
+    fn _mm_slli_epi16<const IMM8: i32>(a: __m128i) -> __m128i { shift_logical!(Shl::shl, i16x8, a, IMM8) }
+    fn _mm_slli_epi32<const IMM8: i32>(a: __m128i) -> __m128i { shift_logical!(Shl::shl, i32x4, a, IMM8) }
+    fn _mm_slli_epi64<const IMM8: i32>(a: __m128i) -> __m128i { shift_logical!(Shl::shl, i64x2, a, IMM8) }
+    fn _mm_srli_epi16<const IMM8: i32>(a: __m128i) -> __m128i { shift_logical!(Shr::shr, u16x8, a, IMM8) }
+    fn _mm_srli_epi32<const IMM8: i32>(a: __m128i) -> __m128i { shift_logical!(Shr::shr, u32x4, a, IMM8) }
+    fn _mm_srli_epi64<const IMM8: i32>(a: __m128i) -> __m128i { shift_logical!(Shr::shr, u64x2, a, IMM8) }
+    fn _mm_srai_epi16<const IMM8: i32>(a: __m128i) -> __m128i { shift_right!(i16x8, a, IMM8) }
+    fn _mm_srai_epi32<const IMM8: i32>(a: __m128i) -> __m128i { shift_right!(i32x4, a, IMM8) }
 }
 
-shift! {
-    _mm_slli_epi16, Shl::shl, i16x8;
-    _mm_slli_epi32, Shl::shl, i32x4;
-    _mm_slli_epi64, Shl::shl, i64x2;
-    _mm_srai_epi16, Shr::shr, i16x8;
-    _mm_srai_epi32, Shr::shr, i32x4;
-    _mm_srai_epi64, Shr::shr, i64x2;
-    _mm_srli_epi16, Shr::shr, u16x8;
-    _mm_srli_epi32, Shr::shr, u32x4;
-    _mm_srli_epi64, Shr::shr, u64x2;
-}
-
-binary! {
-    _mm_sll_epi16, Shl::shl, __m128i as i16x8;
-    _mm_sll_epi32, Shl::shl, __m128i as i32x4;
-    _mm_sll_epi64, Shl::shl, __m128i as i64x2;
-    _mm_sra_epi16, Shr::shr, __m128i as i16x8;
-    _mm_sra_epi32, Shr::shr, __m128i as i32x4;
-    _mm_sra_epi64, Shr::shr, __m128i as i64x2;
-    _mm_srl_epi16, Shr::shr, __m128i as u16x8;
-    _mm_srl_epi32, Shr::shr, __m128i as u32x4;
-    _mm_srl_epi64, Shr::shr, __m128i as u64x2;
+intrinsic! {
+    fn _mm_sll_epi16(a: __m128i, b: __m128i) -> __m128i { sxl!(Shl::shl, i16x8, u64x2, a, b) }
+    fn _mm_sll_epi32(a: __m128i, b: __m128i) -> __m128i { sxl!(Shl::shl, i32x4, u64x2, a, b) }
+    fn _mm_sll_epi64(a: __m128i, b: __m128i) -> __m128i { sxl!(Shl::shl, i64x2, u64x2, a, b) }
+    fn _mm_srl_epi16(a: __m128i, b: __m128i) -> __m128i { sxl!(Shr::shr, u16x8, u64x2, a, b) }
+    fn _mm_srl_epi32(a: __m128i, b: __m128i) -> __m128i { sxl!(Shr::shr, u32x4, u64x2, a, b) }
+    fn _mm_srl_epi64(a: __m128i, b: __m128i) -> __m128i { sxl!(Shr::shr, u64x2, u64x2, a, b) }
+    fn _mm_sra_epi16(a: __m128i, b: __m128i) -> __m128i { sra!(i16x8, u64x2, a, b) }
+    fn _mm_sra_epi32(a: __m128i, b: __m128i) -> __m128i { sra!(i32x4, u64x2, a, b) }
 }
 
 // TODO cvt

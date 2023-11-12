@@ -1,15 +1,13 @@
 use super::*;
+use crate::into;
 
-binary! {
-    _mm_addsub_ps, addsub, __m128 as f32x4;
-    _mm_addsub_pd, addsub, __m128d as f64x2;
-}
-
-binary! {
-    _mm_hadd_ps, macro hadd, __m128 as f32x4;
-    _mm_hadd_pd, macro hadd, __m128d as f64x2;
-    _mm_hsub_ps, macro hsub, __m128 as f32x4;
-    _mm_hsub_pd, macro hsub, __m128d as f64x2;
+intrinsic! {
+    fn _mm_addsub_ps(a: __m128,  b: __m128)  -> __m128  { into!(addsub, f32x4, a, b) }
+    fn _mm_addsub_pd(a: __m128d, b: __m128d) -> __m128d { into!(addsub, f64x2, a, b) }
+    fn _mm_hadd_ps(a: __m128,  b: __m128)  -> __m128  { into!(hadd!, f32x4, a, b) }
+    fn _mm_hadd_pd(a: __m128d, b: __m128d) -> __m128d { into!(hadd!, f64x2, a, b) }
+    fn _mm_hsub_ps(a: __m128,  b: __m128)  -> __m128  { into!(hsub!, f32x4, a, b) }
+    fn _mm_hsub_pd(a: __m128d, b: __m128d) -> __m128d { into!(hsub!, f64x2, a, b) }
 }
 
 intrinsic! {
