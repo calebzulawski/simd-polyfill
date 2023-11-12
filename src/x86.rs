@@ -58,9 +58,10 @@ macro_rules! make_test {
 
             #[test]
             fn test() {
-                //if !is_x86_feature_detected!($target_feature) {
-                //    return;
-                //}
+                if !crate::x86::test::supported_target!() {
+                    return
+                }
+
                 use crate::test::DefaultStrategy;
                 let mut runner = proptest::test_runner::TestRunner::default();
                 runner.run(&<($($ty,)*)>::default_strategy(), |($($var,)*): ($($ty,)*)| {
@@ -85,12 +86,12 @@ macro_rules! make_test {
 
             #[test]
             fn test() {
-                //if !is_x86_feature_detected!($target_feature) {
-                //    return;
-                //}
+                if !crate::x86::test::supported_target!() {
+                    return
+                }
+
                 use crate::test::DefaultStrategy;
                 let mut runner = proptest::test_runner::TestRunner::default();
-
                 runner.run(&<Input>::default_strategy(), |[$($var,)*]: Input| {
                     let result = super::$name($($var),*);
                     let result_intrin = unsafe {
@@ -192,6 +193,22 @@ mod test {
             a == b
         }
     }
+
+    macro_rules! supported_target {
+        {} => {
+            match module_path!().split("::").nth(2).unwrap() {
+                "sse" => is_x86_feature_detected!("sse"),
+                "sse2" => is_x86_feature_detected!("sse2"),
+                "sse3" => is_x86_feature_detected!("sse3"),
+                "ssse3" => is_x86_feature_detected!("ssse3"),
+                "sse4.1" => is_x86_feature_detected!("sse4.1"),
+                "sse4.2" => is_x86_feature_detected!("sse4.2"),
+                x => panic!("bad target {}", x),
+            }
+        }
+    }
+
+    pub(crate) use supported_target;
 }
 
 macro_rules! andnot {
