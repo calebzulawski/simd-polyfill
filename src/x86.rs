@@ -7,19 +7,19 @@ use core::{
 };
 
 /// MMX instruction set
-pub mod mmx;
+// pub mod mmx;
 
 /// SSE instruction set
 pub mod sse;
 
 /// SSE2 instruction set
-pub mod sse2;
+// pub mod sse2;
 
 /// SSE3 instruction set
-pub mod sse3;
+// pub mod sse3;
 
 /// SSSE3 instruction set
-pub mod ssse3;
+// pub mod ssse3;
 
 vector! {
     pub struct __m64(u8x8) from u8x8, u16x4, u32x2, u64x1, i8x8, i16x4, i32x2, i64x1;
@@ -49,6 +49,47 @@ vector! {
     pub struct __m256d(f64x4) from f64x4, u64x4, i64x4;
 }
 
+macro_rules! make_test {
+    { #[notest()] $name:ident $args:tt $(-> $ret:ty)? } => {};
+    { $name:ident ($($var:ident: $ty:ty),+) -> $ret:ty } => {
+        #[cfg(test)]
+        mod $name {
+            use super::*;
+
+            #[test]
+            fn test() {
+                //if !is_x86_feature_detected!($target_feature) {
+                //    return;
+                //}
+                use crate::test::DefaultStrategy;
+                let mut runner = proptest::test_runner::TestRunner::default();
+                runner.run(&<($($ty,)*)>::default_strategy(), |($($var,)*): ($($ty,)*)| {
+                    let result = super::$name($($var),*);
+                    let result_intrin = unsafe {
+                        core::mem::transmute(
+                            core::arch::x86_64::$name(
+                                $(core::mem::transmute($var)),*
+                            ),
+                        )
+                    };
+                    crate::test::assert_equalish!(result, result_intrin);
+                    Ok(())
+                }).unwrap()
+            }
+        }
+    };
+    { $name:ident() -> $ret:ty } => {
+        #[cfg(test)]
+        mod $name {
+            #[test]
+            fn test() {
+                assert_eq!(super::$name(), unsafe { core::mem::transmute(core::arch::x86_64::$name()) })
+            }
+        }
+    };
+    { $name:ident() } => {}
+}
+
 macro_rules! intrinsic {
     {
         $(#[intrinsic = $name:ident] $func:item)*
@@ -69,12 +110,14 @@ macro_rules! intrinsic {
         )*
     };
     {
-        $(fn $name:ident $args:tt $(-> $ret:ty)? { $($body:tt)* })*
+        $($(#[notest $notest:tt])? fn $name:ident $args:tt $(-> $ret:ty)? { $($body:tt)* })*
     } => {
         $(
         #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
         #[inline]
         pub fn $name $args $(-> $ret)* { $($body)* }
+
+        make_test! { $(#[notest $notest])? $name $args $(-> $ret)? }
         )*
     };
     {
@@ -85,6 +128,31 @@ macro_rules! intrinsic {
         #[inline]
         pub unsafe fn $name $args $(-> $ret)* { $($body)* }
         )*
+    };
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test::{strategy_type, Equalish};
+    strategy_type! { __m128, f32, 4 }
+    strategy_type! { __m128d, f64, 2 }
+    strategy_type! { __m128i, i32, 4 }
+
+    impl Equalish for __m128i {}
+    impl Equalish for __m128 {
+        fn equalish(self, other: Self) -> bool {
+            let a: i32x4 = self.into();
+            let b: i32x4 = other.into();
+            a == b
+        }
+    }
+    impl Equalish for __m128d {
+        fn equalish(self, other: Self) -> bool {
+            let a: i64x2 = self.into();
+            let b: i64x2 = other.into();
+            a == b
+        }
     }
 }
 
@@ -243,7 +311,7 @@ macro_rules! unary {
 
 macro_rules! andnot {
     { $a:expr, $b:expr } => {
-        !($a & $b)
+        (!$a) & $b
     }
 }
 
@@ -317,6 +385,33 @@ macro_rules! cmpunord {
     { $a:expr, $b:expr } => {
         ($a.is_nan() | $b.is_nan()).to_int()
     }
+}
+
+macro_rules! fcmp {
+    { $($fcmp:ident: $cmp:ident,)* } => {
+        $(
+        macro_rules! $fcmp {
+            { $a:expr, $b:expr } => { SimdFloat::from_bits($cmp!($a, $b).cast()) }
+        }
+
+        pub(crate) use $fcmp;
+        )*
+    }
+}
+
+fcmp! {
+    fcmpeq: cmpeq,
+    fcmpgt: cmpgt,
+    fcmpge: cmpge,
+    fcmplt: cmplt,
+    fcmple: cmple,
+    fcmpord: cmpord,
+    fcmpneq: cmpneq,
+    fcmpngt: cmpngt,
+    fcmpnge: cmpnge,
+    fcmpnlt: cmpnlt,
+    fcmpnle: cmpnle,
+    fcmpunord: cmpunord,
 }
 
 macro_rules! packs2 {
@@ -542,6 +637,7 @@ pub(crate) use hadds;
 pub(crate) use hsub;
 pub(crate) use hsubs;
 pub(crate) use intrinsic;
+pub(crate) use make_test;
 pub(crate) use packs2;
 pub(crate) use packs4;
 pub(crate) use packs8;

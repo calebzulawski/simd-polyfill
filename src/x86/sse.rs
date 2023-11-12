@@ -1,115 +1,104 @@
 use super::*;
+use crate::{into, into_first};
 use core::simd::ToBitMask;
 
-binary! {
-    _mm_add_ps, Add::add, __m128 as f32x4;
-    _mm_div_ps, Div::div, __m128 as f32x4;
-    _mm_mul_ps, Mul::mul, __m128 as f32x4;
-    _mm_sub_ps, Sub::sub, __m128 as f32x4;
-
-    _mm_max_pu8, SimdOrd::simd_max, __m64 as u8x8;
-    _mm_max_pi16, SimdOrd::simd_max, __m64 as i16x4;
-    _mm_min_pu8, SimdOrd::simd_min, __m64 as u8x8;
-    _mm_min_pi16, SimdOrd::simd_min, __m64 as i16x4;
-
-    _mm_and_ps, BitAnd::bitand, __m128 as i32x4;
-    _mm_or_ps, BitOr::bitor, __m128 as i32x4;
-    _mm_xor_ps, BitXor::bitxor, __m128 as i32x4;
-
-    _mm_avg_pu16, pavgw, __m64 as u16x4;
-    _mm_avg_pu8, pavgb, __m64 as u8x8;
-}
-
-binary! {
-    _mm_andnot_ps, macro andnot, __m128 as i32x4;
-
-    _mm_max_ps, macro float_max, __m128 as f32x4;
-    _mm_min_ps, macro float_min, __m128 as f32x4;
-
-    _mm_unpackhi_ps, macro unpackhi, __m128 as f32x4;
-    _mm_unpacklo_ps, macro unpacklo, __m128 as f32x4;
-
-    _mm_cmpeq_ps, macro cmpeq, __m128 as f32x4;
-    _mm_cmpge_ps, macro cmpge, __m128 as f32x4;
-    _mm_cmpgt_ps, macro cmpgt, __m128 as f32x4;
-    _mm_cmple_ps, macro cmple, __m128 as f32x4;
-    _mm_cmplt_ps, macro cmplt, __m128 as f32x4;
-    _mm_cmpneq_ps, macro cmpneq, __m128 as f32x4;
-    _mm_cmpnge_ps, macro cmpnge, __m128 as f32x4;
-    _mm_cmpngt_ps, macro cmpngt, __m128 as f32x4;
-    _mm_cmpnle_ps, macro cmpnle, __m128 as f32x4;
-    _mm_cmpnlt_ps, macro cmpnlt, __m128 as f32x4;
-    _mm_cmpord_ps, macro cmpord, __m128 as f32x4;
-    _mm_cmpunord_ps, macro cmpunord, __m128 as f32x4;
-}
-
-binary_one_element! {
-    _mm_add_ss, Add::add, __m128 as f32x4;
-    _mm_div_ss, Div::div, __m128 as f32x4;
-    _mm_mul_ss, Mul::mul, __m128 as f32x4;
-    _mm_sub_ss, Sub::sub, __m128 as f32x4;
-}
-
-binary_one_element! {
-    _mm_max_ss, macro float_max, __m128 as f32x4;
-    _mm_min_ss, macro float_min, __m128 as f32x4;
-
-    _mm_cmpeq_ss, macro cmpeq, __m128 as f32x4;
-    _mm_cmpge_ss, macro cmpge, __m128 as f32x4;
-    _mm_cmpgt_ss, macro cmpgt, __m128 as f32x4;
-    _mm_cmple_ss, macro cmple, __m128 as f32x4;
-    _mm_cmplt_ss, macro cmplt, __m128 as f32x4;
-    _mm_cmpneq_ss, macro cmpneq, __m128 as f32x4;
-    _mm_cmpnge_ss, macro cmpnge, __m128 as f32x4;
-    _mm_cmpngt_ss, macro cmpngt, __m128 as f32x4;
-    _mm_cmpnle_ss, macro cmpnle, __m128 as f32x4;
-    _mm_cmpnlt_ss, macro cmpnlt, __m128 as f32x4;
-    _mm_cmpord_ss, macro cmpord, __m128 as f32x4;
-    _mm_cmpunord_ss, macro cmpunord, __m128 as f32x4;
-}
-
 macro_rules! comi {
-    { $($name:ident, $func:ident;)* } => {
-        intrinsic! {
-            $(
-            fn $name(a: __m128, b: __m128) -> i32 {
-                let a: f32x4 = a.into();
-                let b: f32x4 = b.into();
-                a[0].$func(&b[0]) as i32
-            }
-            )*
+    { $f:ident, $a:expr, $b:expr } => {
+        {
+            let a: f32x4 = $a.into();
+            let b: f32x4 = $b.into();
+            a[0].$f(&b[0]) as i32
         }
     }
 }
 
-comi! {
-    _mm_comieq_ss, eq;
-    _mm_comige_ss, ge;
-    _mm_comigt_ss, gt;
-    _mm_comile_ss, le;
-    _mm_comilt_ss, lt;
-    _mm_comineq_ss, ne;
+intrinsic! {
+    fn _mm_add_ps(a: __m128, b: __m128) -> __m128 { into!(Add::add, f32x4, a, b) }
+    fn _mm_div_ps(a: __m128, b: __m128) -> __m128 { into!(Div::div, f32x4, a, b) }
+    fn _mm_mul_ps(a: __m128, b: __m128) -> __m128 { into!(Mul::mul, f32x4, a, b) }
+    fn _mm_sub_ps(a: __m128, b: __m128) -> __m128 { into!(Sub::sub, f32x4, a, b) }
 
-    _mm_ucomieq_ss, eq;
-    _mm_ucomige_ss, ge;
-    _mm_ucomigt_ss, gt;
-    _mm_ucomile_ss, le;
-    _mm_ucomilt_ss, lt;
-    _mm_ucomineq_ss, ne;
+    #[notest()] fn _mm_max_pu8 (a: __m64, b: __m64) -> __m64 { into!(SimdOrd::simd_max, u8x8,  a, b) }
+    #[notest()] fn _mm_max_pi16(a: __m64, b: __m64) -> __m64 { into!(SimdOrd::simd_max, i16x4, a, b) }
+    #[notest()] fn _mm_min_pu8 (a: __m64, b: __m64) -> __m64 { into!(SimdOrd::simd_min, u8x8,  a, b) }
+    #[notest()] fn _mm_min_pi16(a: __m64, b: __m64) -> __m64 { into!(SimdOrd::simd_min, i16x4, a, b) }
+
+    fn _mm_and_ps(a: __m128, b: __m128) -> __m128 { into!(BitAnd::bitand, i32x4, a, b) }
+    fn _mm_or_ps (a: __m128, b: __m128) -> __m128 { into!(BitOr::bitor,   i32x4, a, b) }
+    fn _mm_xor_ps(a: __m128, b: __m128) -> __m128 { into!(BitXor::bitxor, i32x4, a, b) }
+    fn _mm_andnot_ps(a: __m128, b: __m128) -> __m128 { into!(andnot!, i32x4, a, b) }
+
+    #[notest()] fn _mm_avg_pu16(a: __m64, b: __m64) -> __m64 { into!(pavgw, u16x4, a, b) }
+    #[notest()] fn _mm_avg_pu8 (a: __m64, b: __m64) -> __m64 { into!(pavgb, u8x8, a, b) }
+
+    fn _mm_max_ps(a: __m128, b: __m128) -> __m128 { into!(float_max!, f32x4, a, b) }
+    fn _mm_min_ps(a: __m128, b: __m128) -> __m128 { into!(float_min!, f32x4, a, b) }
+
+    fn _mm_unpackhi_ps(a: __m128, b: __m128) -> __m128 { into!(unpackhi!, f32x4, a, b) }
+    fn _mm_unpacklo_ps(a: __m128, b: __m128) -> __m128 { into!(unpacklo!, f32x4, a, b) }
+
+    fn _mm_cmpeq_ps(a: __m128, b: __m128) -> __m128 { into!(cmpeq!, f32x4, a, b) }
+    fn _mm_cmpge_ps(a: __m128, b: __m128) -> __m128 { into!(cmpge!, f32x4, a, b) }
+    fn _mm_cmpgt_ps(a: __m128, b: __m128) -> __m128 { into!(cmpgt!, f32x4, a, b) }
+    fn _mm_cmple_ps(a: __m128, b: __m128) -> __m128 { into!(cmple!, f32x4, a, b) }
+    fn _mm_cmplt_ps(a: __m128, b: __m128) -> __m128 { into!(cmplt!, f32x4, a, b) }
+    fn _mm_cmpneq_ps(a: __m128, b: __m128) -> __m128 { into!(cmpneq!, f32x4, a, b) }
+    fn _mm_cmpnge_ps(a: __m128, b: __m128) -> __m128 { into!(cmpnge!, f32x4, a, b) }
+    fn _mm_cmpngt_ps(a: __m128, b: __m128) -> __m128 { into!(cmpngt!, f32x4, a, b) }
+    fn _mm_cmpnle_ps(a: __m128, b: __m128) -> __m128 { into!(cmpnle!, f32x4, a, b) }
+    fn _mm_cmpnlt_ps(a: __m128, b: __m128) -> __m128 { into!(cmpnlt!, f32x4, a, b) }
+    fn _mm_cmpord_ps(a: __m128, b: __m128) -> __m128 { into!(cmpord!, f32x4, a, b) }
+    fn _mm_cmpunord_ps(a: __m128, b: __m128) -> __m128 { into!(cmpunord!, f32x4, a, b) }
+
+    fn _mm_add_ss(a: __m128, b: __m128) -> __m128 { into_first!(Add::add, f32x4, a, b) }
+    fn _mm_div_ss(a: __m128, b: __m128) -> __m128 { into_first!(Div::div, f32x4, a, b) }
+    fn _mm_mul_ss(a: __m128, b: __m128) -> __m128 { into_first!(Mul::mul, f32x4, a, b) }
+    fn _mm_sub_ss(a: __m128, b: __m128) -> __m128 { into_first!(Sub::sub, f32x4, a, b) }
+
+    fn _mm_max_ss(a: __m128, b: __m128) -> __m128 { into_first!(float_max!, f32x4, a, b) }
+    fn _mm_min_ss(a: __m128, b: __m128) -> __m128 { into_first!(float_min!, f32x4, a, b) }
+
+    fn _mm_cmpeq_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpeq!, f32x4, a, b) }
+    fn _mm_cmpge_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpge!, f32x4, a, b) }
+    fn _mm_cmpgt_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpgt!, f32x4, a, b) }
+    fn _mm_cmple_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmple!, f32x4, a, b) }
+    fn _mm_cmplt_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmplt!, f32x4, a, b) }
+    fn _mm_cmpneq_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpneq!, f32x4, a, b) }
+    fn _mm_cmpnge_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpnge!, f32x4, a, b) }
+    fn _mm_cmpngt_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpngt!, f32x4, a, b) }
+    fn _mm_cmpnle_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpnle!, f32x4, a, b) }
+    fn _mm_cmpnlt_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpnlt!, f32x4, a, b) }
+    fn _mm_cmpord_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpord!, f32x4, a, b) }
+    fn _mm_cmpunord_ss(a: __m128, b: __m128) -> __m128 { into_first!(fcmpunord!, f32x4, a, b) }
+
+    fn _mm_comieq_ss(a: __m128, b: __m128) -> i32 { comi!(eq, a, b) }
+    fn _mm_comige_ss(a: __m128, b: __m128) -> i32 { comi!(ge, a, b) }
+    fn _mm_comigt_ss(a: __m128, b: __m128) -> i32 { comi!(gt, a, b) }
+    fn _mm_comile_ss(a: __m128, b: __m128) -> i32 { comi!(le, a, b) }
+    fn _mm_comilt_ss(a: __m128, b: __m128) -> i32 { comi!(lt, a, b) }
+    fn _mm_comineq_ss(a: __m128, b: __m128) -> i32 { comi!(ne, a, b) }
+    fn _mm_ucomieq_ss(a: __m128, b: __m128) -> i32 { comi!(eq, a, b) }
+    fn _mm_ucomige_ss(a: __m128, b: __m128) -> i32 { comi!(ge, a, b) }
+    fn _mm_ucomigt_ss(a: __m128, b: __m128) -> i32 { comi!(gt, a, b) }
+    fn _mm_ucomile_ss(a: __m128, b: __m128) -> i32 { comi!(le, a, b) }
+    fn _mm_ucomilt_ss(a: __m128, b: __m128) -> i32 { comi!(lt, a, b) }
+    fn _mm_ucomineq_ss(a: __m128, b: __m128) -> i32 { comi!(ne, a, b) }
 }
 
 intrinsic! {
-    fn _mm_extract_pi16(a: __m64, imm8: i32) -> i32 {
+    fn _mm_extract_pi16<const IMM8: i32>(a: __m64) -> i32 {
         let a: i16x4 = a.into();
-        a[(imm8 & 0x3) as usize] as i32
+        a[(IMM8 & 0x3) as usize] as i32
     }
 
-    fn _mm_insert_pi16(a: __m64, i: i32, imm8: i32) -> __m64 {
+    fn _mm_insert_pi16<const IMM8: i32>(a: __m64, i: i32) -> __m64 {
         let mut a: i16x4 = a.into();
-        a[(imm8 & 0x3) as usize] = i as i16;
+        a[(IMM8 & 0x3) as usize] = i as i16;
         a.into()
     }
+}
 
+intrinsic! {
     fn _mm_move_ss(a: __m128, b: __m128) -> __m128 {
         let a: f32x4 = a.into();
         let b: f32x4 = b.into();
@@ -130,6 +119,7 @@ intrinsic! {
         simd_swizzle!(a, b, [First(0), First(1), Second(0), Second(1)]).into()
     }
 
+    #[notest()]
     fn _mm_movemask_pi8(a: __m64) -> i32 {
         let a: i8x8 = a.into();
         a.simd_lt(i8x8::splat(0)).to_bitmask() as i32
@@ -140,6 +130,7 @@ intrinsic! {
         a.simd_lt(i32x4::splat(0)).to_bitmask() as i32
     }
 
+    #[notest()]
     fn _mm_mulhi_pu16(a: __m64, b: __m64) -> __m64 {
         let a: u16x4 = a.into();
         let b: u16x4 = b.into();
@@ -149,6 +140,7 @@ intrinsic! {
         r.into()
     }
 
+    #[notest()]
     fn _mm_sad_pu8(a: __m64, b: __m64) -> __m64 {
         let a: u8x8 = a.into();
         let b: u8x8 = b.into();
