@@ -6,10 +6,12 @@
 #![cfg_attr(test, feature(stdsimd))]
 #![allow(
     non_camel_case_types,
+    non_snake_case,
     clippy::missing_safety_doc,
     clippy::too_many_arguments,
     clippy::useless_transmute
 )]
+#![cfg_attr(not(test), no_std)]
 
 pub mod x86;
 

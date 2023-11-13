@@ -2,8 +2,21 @@
 name = "simd-polyfill"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Caleb Zulawski <caleb.zulawski@gmail.com>"]
+license = "MIT OR Apache-2.0"
+description = "SIMD polyfill"
+repository = "https://github.com/calebzulawski/simd-polyfill"
+categories = ["simd", "hardware-support", "no-std"]
+readme = "README.md"
+include = [
+    "/Cargo.toml",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/README.md",
+    "/src/**",
+    "/tests/**",
+    "/benches/**",
+]
 
 [dependencies]
 
