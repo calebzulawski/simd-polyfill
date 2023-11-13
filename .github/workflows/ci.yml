@@ -1,0 +1,43 @@
+name: Build
+
+on: [push]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        version:
+          - nightly
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install toolchain
+      run: |
+        rustup toolchain install --profile minimal ${{ matrix.version }}
+        rustup default ${{ matrix.version }}
+    - name: Run tests
+      run: cargo test --verbose ${{ matrix.features }}
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install toolchain
+      run: |
+        rustup toolchain install --profile minimal ${{ matrix.version }}
+        rustup default ${{ matrix.version }}
+    - name: Clippy lint
+      run: cargo clippy --all-targets -- -D warnings
+    - name: Check formatting
+      run: cargo fmt -- --check
+    - name: Deadlinks
+      run: |
+        cargo install cargo-deadlinks
+        cargo doc
+        cargo deadlinks -v --check-http

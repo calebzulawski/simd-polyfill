@@ -7,7 +7,8 @@
 #![allow(
     non_camel_case_types,
     clippy::missing_safety_doc,
-    clippy::too_many_arguments
+    clippy::too_many_arguments,
+    clippy::useless_transmute
 )]
 
 pub mod x86;
