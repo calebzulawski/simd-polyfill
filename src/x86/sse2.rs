@@ -132,14 +132,16 @@ intrinsic! {
 }
 
 intrinsic! {
+    #[testvals(0, 1, 2, 3, 4, 5, 6, 7)]
     fn _mm_extract_epi16<const IMM8: i32>(a: __m128i) -> i32 {
         let a: i16x8 = a.into();
-        a[(IMM8 & 0b111) as usize] as i32
+        a[(IMM8 & 0b111) as usize] as u16 as i32
     }
 
+    #[testvals(0, 1, 2, 3, 4, 5, 6, 7)]
     fn _mm_insert_epi16<const IMM8: i32>(a: __m128i, i: i32) -> __m128i {
         let mut a: i16x8 = a.into();
-        a[(IMM8 & 0x111) as usize] = i as i16;
+        a[(IMM8 & 0b111) as usize] = (i & 0xffff) as i16;
         a.into()
     }
 }

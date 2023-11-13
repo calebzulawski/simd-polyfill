@@ -38,6 +38,45 @@ macro_rules! supported_target {
 
 macro_rules! make_test {
     { #[notest()] $name:ident $args:tt $(-> $ret:ty)? } => {};
+    { #[notest()] $name:ident <const $imm:ident: $immty:ty> $args:tt $(-> $ret:ty)? } => {};
+    { @imm ($testval:expr) $name:ident <const $imm:ident: $immty:ty> ($($var:ident: $ty:ty),+) -> $ret:ty } => {
+        paste::paste! {
+            #[test]
+            fn [<test_ $testval>]() {
+                if !crate::x86::test::supported_target!() {
+                    return
+                }
+
+                use crate::test::DefaultStrategy;
+                let mut runner = proptest::test_runner::TestRunner::default();
+
+                runner.run(&<($($ty,)*)>::default_strategy(), |($($var,)*): ($($ty,)*)| {
+                    let result = super::$name::<$testval>($($var),*);
+                    let result_intrin: $ret = unsafe {
+                        core::mem::transmute(
+                            core::arch::x86_64::$name(
+                                $(core::mem::transmute($var)),*, $testval,
+                            ),
+                        )
+                    };
+                    crate::test::assert_equalish!(result, result_intrin);
+                    Ok(())
+                }).unwrap();
+            }
+        }
+    };
+    { #[testvals($($testval:expr),+)] $name:ident <const $imm:ident: $immty:ty> $args:tt -> $ret:ty } => {
+        mod $name {
+            use super::*;
+            $( crate::x86::test::make_test! { @imm ($testval) $name <const $imm: $immty> $args -> $ret } )*
+        }
+    };
+    { $name:ident <const IMM8: $immty:ty> $args:tt -> $ret:ty } => {
+        crate::x86::test::make_test! {
+            #[testvals(0x00, 0x01, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0xf, 0x10, 0xf0, 0xff, 0x25, 0x28, 0x8a, 0x1c, 0xb6, 0x61, 0xb0, 0x7c)]
+            $name <const IMM8: $immty> $args -> $ret
+        }
+    };
     { $name:ident ($($var:ident: $ty:ty),+) -> $ret:ty } => {
         mod $name {
             use super::*;

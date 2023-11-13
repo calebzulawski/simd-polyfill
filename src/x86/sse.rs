@@ -86,11 +86,13 @@ intrinsic! {
 }
 
 intrinsic! {
+    #[notest()]
     fn _mm_extract_pi16<const IMM8: i32>(a: __m64) -> i32 {
         let a: i16x4 = a.into();
         a[(IMM8 & 0x3) as usize] as i32
     }
 
+    #[notest()]
     fn _mm_insert_pi16<const IMM8: i32>(a: __m64, i: i32) -> __m64 {
         let mut a: i16x4 = a.into();
         a[(IMM8 & 0x3) as usize] = i as i16;
@@ -184,24 +186,26 @@ intrinsic! {
 }
 
 intrinsic! {
+    #[notest()]
     fn _mm_shuffle_pi16<const IMM8: i32>(a: __m64) -> __m64 {
         let a: i16x4 = a.into();
         shuffle4! { IMM8, a }.into()
     }
 
-    fn _mm_shuffle_ps<const IMM8: i32>(a: __m128) -> __m128 {
+    fn _mm_shuffle_ps<const IMM8: i32>(a: __m128, b: __m128) -> __m128 {
         let a: f32x4 = a.into();
-        use core::simd::Swizzle;
+        let b: f32x4 = b.into();
+        use core::simd::{Swizzle2, Which};
         struct Shuffle<const IMM8: i32>;
-        impl<const IMM8: i32> Swizzle<4, 4> for Shuffle<IMM8> {
-            const INDEX: [usize; 4] = [
-                (IMM8 as usize) & 0x3,
-                (IMM8 as usize >> 2) & 0x3,
-                (IMM8 as usize >> 4) & 0x3,
-                (IMM8 as usize >> 8) & 0x3,
+        impl<const IMM8: i32> Swizzle2<4, 4> for Shuffle<IMM8> {
+            const INDEX: [Which; 4] = [
+                Which::First((IMM8 as usize) & 0x3),
+                Which::First((IMM8 as usize >> 2) & 0x3),
+                Which::Second((IMM8 as usize >> 4) & 0x3),
+                Which::Second((IMM8 as usize >> 6) & 0x3),
             ];
         }
-        Shuffle::<IMM8>::swizzle(a).into()
+        Shuffle::<IMM8>::swizzle2(a, b).into()
     }
 }
 

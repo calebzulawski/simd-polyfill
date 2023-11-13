@@ -9,3 +9,4 @@ edition = "2021"
 
 [dev-dependencies]
 proptest = "1"
+paste = "1"

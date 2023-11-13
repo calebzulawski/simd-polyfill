@@ -189,22 +189,22 @@ intrinsic! {
 }
 
 intrinsic! {
-    fn _mm_slli_epi16<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i16x4, a, IMM8) }
-    fn _mm_slli_epi32<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i32x2, a, IMM8) }
-    fn _mm_slli_epi64<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i64x1, a, IMM8) }
-    fn _mm_srli_epi16<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u16x4, a, IMM8) }
-    fn _mm_srli_epi32<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u32x2, a, IMM8) }
-    fn _mm_srli_epi64<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u64x1, a, IMM8) }
-    fn _mm_srai_epi16<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i16x4, a, IMM8) }
-    fn _mm_srai_epi32<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i32x2, a, IMM8) }
-    fn _m_psllwi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i16x4, a, IMM8) }
-    fn _m_pslldi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i32x2, a, IMM8) }
-    fn _m_psllqi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i64x1, a, IMM8) }
-    fn _m_psrlwi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u16x4, a, IMM8) }
-    fn _m_psrldi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u32x2, a, IMM8) }
-    fn _m_psrlqi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u64x1, a, IMM8) }
-    fn _m_psrawi<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i16x4, a, IMM8) }
-    fn _m_psradi<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i32x2, a, IMM8) }
+    #[notest()] fn _mm_slli_epi16<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i16x4, a, IMM8) }
+    #[notest()] fn _mm_slli_epi32<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i32x2, a, IMM8) }
+    #[notest()] fn _mm_slli_epi64<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i64x1, a, IMM8) }
+    #[notest()] fn _mm_srli_epi16<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u16x4, a, IMM8) }
+    #[notest()] fn _mm_srli_epi32<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u32x2, a, IMM8) }
+    #[notest()] fn _mm_srli_epi64<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u64x1, a, IMM8) }
+    #[notest()] fn _mm_srai_epi16<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i16x4, a, IMM8) }
+    #[notest()] fn _mm_srai_epi32<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i32x2, a, IMM8) }
+    #[notest()] fn _m_psllwi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i16x4, a, IMM8) }
+    #[notest()] fn _m_pslldi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i32x2, a, IMM8) }
+    #[notest()] fn _m_psllqi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shl::shl, i64x1, a, IMM8) }
+    #[notest()] fn _m_psrlwi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u16x4, a, IMM8) }
+    #[notest()] fn _m_psrldi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u32x2, a, IMM8) }
+    #[notest()] fn _m_psrlqi<const IMM8: i32>(a: __m64) -> __m64 { shift_logical!(Shr::shr, u64x1, a, IMM8) }
+    #[notest()] fn _m_psrawi<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i16x4, a, IMM8) }
+    #[notest()] fn _m_psradi<const IMM8: i32>(a: __m64) -> __m64 { shift_right!(i32x2, a, IMM8) }
 }
 
 intrinsic! {

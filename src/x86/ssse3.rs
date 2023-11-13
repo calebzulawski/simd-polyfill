@@ -56,78 +56,13 @@ intrinsic! {
 }
 
 intrinsic! {
+    #[notest()]
     fn _mm_alignr_pi8<const IMM8: usize>(a: __m64, b: __m64) -> __m64 {
-        fn select<const IMM8: usize>() -> [bool; 8] {
-            let mut mask = [true; 8];
-            let mut i = 0;
-            while i < IMM8 {
-                mask[i] = false;
-                i += 1;
-            }
-            mask
-        }
-
-        fn mask<const IMM8: usize>() -> [bool; 8] {
-            if IMM8 <= 8 {
-                [true; 8]
-            } else if IMM8 < 16 {
-                let mut mask = [false; 8];
-                let mut i = 0;
-                while i < 16 - IMM8 {
-                    mask[i] = true;
-                    i += 1;
-                }
-                mask
-            } else {
-                [false; 8]
-            }
-        }
-
-        let a: i8x8 = a.into();
-        let b: i8x8 = b.into();
-        mask8x8::from_array(mask::<IMM8>())
-            .select(
-                mask8x8::from_array(select::<IMM8>())
-                    .select(a.rotate_lanes_left::<IMM8>(), b.rotate_lanes_right::<IMM8>()),
-                i8x8::splat(0),
-            ).into()
+        alignr!(IMM8, u8, 8, a, b)
     }
 
     fn _mm_alignr_epi8<const IMM8: usize>(a: __m128i, b: __m128i) -> __m128i {
-        fn select<const IMM8: usize>() -> [bool; 16] {
-            let mut mask = [true; 16];
-            let mut i = 0;
-            while i < IMM8 {
-                mask[i] = false;
-                i += 1;
-            }
-            mask
-        }
-
-        fn mask<const IMM8: usize>() -> [bool; 16] {
-            if IMM8 <= 16 {
-                [true; 16]
-            } else if IMM8 < 32 {
-                let mut mask = [false; 16];
-                let mut i = 0;
-                while i < 32 - IMM8 {
-                    mask[i] = true;
-                    i += 1;
-                }
-                mask
-            } else {
-                [false; 16]
-            }
-        }
-
-        let a: i8x16 = a.into();
-        let b: i8x16 = b.into();
-        mask8x16::from_array(mask::<IMM8>())
-            .select(
-                mask8x16::from_array(select::<IMM8>())
-                    .select(a.rotate_lanes_left::<IMM8>(), b.rotate_lanes_right::<IMM8>()),
-                i8x16::splat(0),
-            ).into()
+        alignr!(IMM8, u8, 16, a, b)
     }
 }
 

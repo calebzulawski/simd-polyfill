@@ -63,12 +63,23 @@ macro_rules! intrinsic {
         )*
     };
     {
-        $(fn $name:ident<const $imm:ident: $immty:ty> $args:tt $(-> $ret:ty)? { $($body:tt)* })*
+        $(
+        $(#[notest $notest:tt])?
+        $(#[testvals $testvals:tt])?
+        fn $name:ident<const $imm:ident: $immty:ty> $args:tt $(-> $ret:ty)? { $($body:tt)* }
+        )*
     } => {
         $(
         #[doc = concat!("[reference ↗](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=", stringify!($name), ")")]
         #[inline]
         pub fn $name <const $imm: $immty> $args $(-> $ret)* { $($body)* }
+
+        #[cfg(test)]
+        crate::x86::test::make_test! {
+            $(#[notest $notest])?
+            $(#[testvals $testvals])?
+            $name <const $imm: $immty> $args $(-> $ret)?
+        }
         )*
     };
     {
@@ -350,10 +361,65 @@ macro_rules! shuffle4 {
                     (IMM8 as usize >> 0) & 0x3,
                     (IMM8 as usize >> 2) & 0x3,
                     (IMM8 as usize >> 4) & 0x3,
-                    (IMM8 as usize >> 8) & 0x3,
+                    (IMM8 as usize >> 6) & 0x3,
                 ];
             }
             Shuffle::<$IMM8>::swizzle($a)
+        }
+    }
+}
+
+macro_rules! alignr {
+    { $IMM8:expr, $ty:ty, $len:expr, $a:expr, $b:expr } => {
+        {
+            use core::simd::Which;
+
+            type Elem = $ty;
+            const LEN: usize = $len;
+            const CONCAT_LEN: usize = LEN * 2;
+            const CONCAT_INDEX: [Which; CONCAT_LEN] = {
+                let mut index = [Which::First(0); CONCAT_LEN];
+                let mut i = 0;
+                while i < LEN {
+                    index[i] = Which::Second(i);
+                    index[i + LEN] = Which::First(i);
+                    i += 1;
+                }
+                index
+            };
+            const REDUCE_INDEX: [usize; LEN] = {
+                let mut index = [0; LEN];
+                let mut i = 0;
+                while i < LEN {
+                    index[i] = i;
+                    i += 1;
+                }
+                index
+            };
+
+            fn mask<const IMM8: usize>() -> [bool; LEN] {
+                if IMM8 <= LEN {
+                    [true; LEN]
+                } else if IMM8 < CONCAT_LEN {
+                    let mut mask = [false; LEN];
+                    let mut i = 0;
+                    while i < CONCAT_LEN - IMM8 {
+                        mask[i] = true;
+                        i += 1;
+                    }
+                    mask
+                } else {
+                    [false; LEN]
+                }
+            }
+
+            let a: Simd<Elem, LEN> = $a.into();
+            let b: Simd<Elem, LEN> = $b.into();
+            let concat: Simd<Elem, CONCAT_LEN> = simd_swizzle!(a, b, CONCAT_INDEX);
+            Mask::<<Elem as SimdElement>::Mask, LEN>::from_array(mask::<$IMM8>()).select(
+                simd_swizzle!(concat.rotate_lanes_left::<$IMM8>(), REDUCE_INDEX),
+                Simd::splat(0),
+            ).into()
         }
     }
 }
@@ -450,6 +516,7 @@ macro_rules! sra {
     }
 }
 
+pub(crate) use alignr;
 pub(crate) use andnot;
 pub(crate) use cmpeq;
 pub(crate) use cmpge;
