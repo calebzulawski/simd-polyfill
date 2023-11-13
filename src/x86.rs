@@ -28,31 +28,43 @@ pub mod ssse3;
 pub mod sse41;
 
 vector! {
+    /// 64-bit MMX vector
     pub struct __m64(u32x2) from u8x8, u16x4, u32x2, u64x1, i8x8, i16x4, i32x2, i64x1;
 }
 
 vector! {
+    /// 128-bit SSE integer vector
     pub struct __m128i(u32x4) from u8x16, u16x8, u32x4, u64x2, i8x16, i16x8, i32x4, i64x2;
 }
 
 vector! {
+    /// 128-bit SSE float (`f32`) vector
     pub struct __m128(f32x4) from f32x4, u32x4, i32x4;
 }
 
 vector! {
+    /// 128-bit SSE double (`f64`) vector
     pub struct __m128d(f64x2) from f64x2, u64x2, i64x2;
 }
 
 vector! {
+    /// 256-bit AVX integer vector
     pub struct __m256i(u32x8) from u8x32, u16x16, u32x8, u64x4, i8x32, i16x16, i32x8, i64x4;
 }
 
 vector! {
+    /// 256-bit AVX float (`f32`) vector
     pub struct __m256(f32x8) from f32x8, u32x8, i32x8;
 }
 
 vector! {
+    /// 256-bit AVX double (`f64`) vector
     pub struct __m256d(f64x4) from f64x4, u64x4, i64x4;
+}
+
+/// Generate 8-bit immediates for shuffle intrinsics.
+pub const fn _MM_SHUFFLE(z: u32, y: u32, x: u32, w: u32) -> i32 {
+    ((z << 6) | (y << 4) | (x << 2) | w) as i32
 }
 
 macro_rules! intrinsic {

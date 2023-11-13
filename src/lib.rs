@@ -17,7 +17,8 @@ pub mod x86;
 pub(crate) mod test;
 
 macro_rules! vector {
-    { pub struct $name:ident($inner:ty) from $($from:ty),*; } => {
+    { $(#[doc = $doc:literal])* pub struct $name:ident($inner:ty) from $($from:ty),*; } => {
+        $(#[doc = $doc])*
         #[derive(Copy, Clone, Debug, PartialEq)]
         #[repr(transparent)]
         pub struct $name($inner);
