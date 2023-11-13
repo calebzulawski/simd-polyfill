@@ -69,6 +69,62 @@ intrinsic! {
         let index = min_lanes.to_bitmask().trailing_zeros();
         u16x8::from_array([min, index as u16, 0, 0, 0, 0, 0, 0]).into()
     }
+
+    fn _mm_mul_epi32(a: __m128i, b: __m128i) -> __m128i {
+        let a: i32x4 = a.into();
+        let b: i32x4 = b.into();
+        let a: i64x4 = a.cast();
+        let b: i64x4 = b.cast();
+        simd_swizzle!(a * b, [0, 2]).into()
+    }
+
+    fn _mm_mullo_epi32(a: __m128i, b: __m128i) -> __m128i {
+        let a: i32x4 = a.into();
+        let b: i32x4 = b.into();
+        let a: i64x4 = a.cast();
+        let b: i64x4 = b.cast();
+        let r: i32x4 = ((a * b) & i64x4::splat(0xffffffff)).cast();
+        r.into()
+    }
+
+    fn _mm_packus_epi32(a: __m128i, b: __m128i) -> __m128i {
+        let a: i32x4 = a.into();
+        let b: i32x4 = b.into();
+        packs4!{ u16, a, b }.into()
+    }
+
+    fn _mm_test_all_ones(a: __m128i) -> i32 {
+        let a: i8x16 = a.into();
+        (!a).simd_eq(i8x16::splat(0)).all().into()
+    }
+
+    fn _mm_test_all_zeros(mask: __m128i, a: __m128i) -> i32 {
+        let mask: i8x16 = mask.into();
+        let a: i8x16 = a.into();
+        (a & mask).simd_eq(i8x16::splat(0)).all().into()
+    }
+
+    fn _mm_test_mix_ones_zeros(mask: __m128i, a: __m128i) -> i32 {
+        let mask: i8x16 = mask.into();
+        let a: i8x16 = a.into();
+        (!(!a & mask).simd_eq(i8x16::splat(0)).all() & !(a & mask).simd_eq(i8x16::splat(0)).all()).into()
+    }
+
+    fn _mm_testc_si128(a: __m128i, b: __m128i) -> i32 {
+        let a: i8x16 = a.into();
+        let b: i8x16 = b.into();
+        (!a & b).simd_eq(i8x16::splat(0)).all().into()
+    }
+
+    fn _mm_testnzc_si128(a: __m128i, b: __m128i) -> i32 {
+        _mm_test_mix_ones_zeros(a, b)
+    }
+
+    fn _mm_testz_si128(a: __m128i, b: __m128i) -> i32 {
+        let a: i8x16 = a.into();
+        let b: i8x16 = b.into();
+        (a & b).simd_eq(i8x16::splat(0)).all().into()
+    }
 }
 
 intrinsic! {
@@ -128,5 +184,7 @@ intrinsic! {
     }
 }
 
-// TODO ceil, floor
+// TODO ceil, floor, round
+// TODO mpsadw
 // TODO cvt
+// TODO stream_load
