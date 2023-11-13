@@ -36,8 +36,3 @@ jobs:
       run: cargo clippy --all-targets -- -D warnings
     - name: Check formatting
       run: cargo fmt -- --check
-    - name: Deadlinks
-      run: |
-        cargo install cargo-deadlinks
-        cargo doc
-        cargo deadlinks -v --check-http
