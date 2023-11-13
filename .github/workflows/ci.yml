@@ -32,6 +32,7 @@ jobs:
       run: |
         rustup toolchain install --profile minimal nightly
         rustup default nightly
+        rustup component add clippy
     - name: Clippy lint
       run: cargo clippy --all-targets -- -D warnings
     - name: Check formatting
