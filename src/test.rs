@@ -19,6 +19,7 @@ pub trait Equalish: Copy + PartialEq + core::fmt::Debug {
 }
 
 impl Equalish for i32 {}
+impl Equalish for i64 {}
 
 pub trait DefaultStrategy {
     type Strategy: strategy::Strategy<Value = Self>;

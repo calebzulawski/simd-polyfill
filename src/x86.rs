@@ -24,6 +24,9 @@ pub mod sse3;
 /// SSSE3 instruction set
 pub mod ssse3;
 
+/// SSE4.1 instruction set
+pub mod sse41;
+
 vector! {
     pub struct __m64(u32x2) from u8x8, u16x4, u32x2, u64x1, i8x8, i16x4, i32x2, i64x1;
 }
@@ -516,8 +519,63 @@ macro_rules! sra {
     }
 }
 
+macro_rules! blend {
+    { $imm8:expr, $ty:ty, $a:expr, $b:expr } => {
+        {
+            use core::simd::{Swizzle2, Which};
+            const LEN: usize = <$ty>::LANES;
+
+            struct Blend<const IMM8: i32>;
+
+            impl<const IMM8: i32> Swizzle2<LEN, LEN> for Blend<IMM8> {
+                const INDEX: [Which; LEN] = {
+                    let mut index = [Which::First(0); LEN];
+                    let mut i = 0;
+                    while i < LEN {
+                        index[i] = if ((IMM8 >> i) & 0x1) != 0 {
+                            Which::Second(i)
+                        } else {
+                            Which::First(i)
+                        };
+                        i += 1;
+                    }
+                    index
+                };
+            }
+
+            let a: $ty = $a.into();
+            let b: $ty = $b.into();
+            Blend::<IMM8>::swizzle2(a, b).into()
+        }
+    }
+}
+
+macro_rules! blendv {
+    { $ty:ty, $a:expr, $b:expr, $mask:expr } => {
+        {
+            let a: $ty = $a.into();
+            let b: $ty = $b.into();
+            let mask: $ty = $mask.into();
+            mask.is_negative().select(b, a).into()
+        }
+    }
+}
+
+macro_rules! fblendv {
+    { $ty:ty, $a:expr, $b:expr, $mask:expr } => {
+        {
+            let a: $ty = $a.into();
+            let b: $ty = $b.into();
+            let mask: $ty = $mask.into();
+            mask.is_sign_negative().select(b, a).into()
+        }
+    }
+}
+
 pub(crate) use alignr;
 pub(crate) use andnot;
+pub(crate) use blend;
+pub(crate) use blendv;
 pub(crate) use cmpeq;
 pub(crate) use cmpge;
 pub(crate) use cmpgt;
@@ -530,6 +588,7 @@ pub(crate) use cmpnle;
 pub(crate) use cmpnlt;
 pub(crate) use cmpord;
 pub(crate) use cmpunord;
+pub(crate) use fblendv;
 pub(crate) use float_max;
 pub(crate) use float_min;
 pub(crate) use hadd;

@@ -9,16 +9,16 @@ impl Equalish for __m64 {}
 impl Equalish for __m128i {}
 impl Equalish for __m128 {
     fn equalish(self, other: Self) -> bool {
-        let a: i32x4 = self.into();
-        let b: i32x4 = other.into();
-        a == b
+        let a: f32x4 = self.into();
+        let b: f32x4 = other.into();
+        (a.simd_eq(b) | (a.is_nan() & b.is_nan())).all()
     }
 }
 impl Equalish for __m128d {
     fn equalish(self, other: Self) -> bool {
-        let a: i64x2 = self.into();
-        let b: i64x2 = other.into();
-        a == b
+        let a: f64x2 = self.into();
+        let b: f64x2 = other.into();
+        (a.simd_eq(b) | (a.is_nan() & b.is_nan())).all()
     }
 }
 
@@ -29,8 +29,8 @@ macro_rules! supported_target {
             "sse2" => is_x86_feature_detected!("sse2"),
             "sse3" => is_x86_feature_detected!("sse3"),
             "ssse3" => is_x86_feature_detected!("ssse3"),
-            "sse4.1" => is_x86_feature_detected!("sse4.1"),
-            "sse4.2" => is_x86_feature_detected!("sse4.2"),
+            "sse41" => is_x86_feature_detected!("sse4.1"),
+            "sse42" => is_x86_feature_detected!("sse4.2"),
             x => panic!("bad target {}", x),
         }
     }
